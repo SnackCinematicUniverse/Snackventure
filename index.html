@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Snackventure</title>
+
+  <!--
+    ==============================
+    SNACKVENTURE - GAME TEMPLATE
+    ==============================
+    • Hand-drawn style platformer
+    • Character select: Nacho Man, Popcorn Man, Cheeto Man
+    • Villain changes based on character:
+        - Nacho Man  -> Evil Kurkure
+        - Popcorn Man-> The One Chip
+        - Cheeto Man -> Taki Man
+    • Multiple levels, simple physics, basic enemy AI
+    • Plenty of TODO comments where you can plug in your own sprites.
+  -->
+
+  <style>
+    :root {
+      --bg-color: #f8f2e9;
+      --ink-dark: #2b2620;
+      --ink-light: #4a4136;
+      --accent-yellow: #ffc857;
+      --accent-orange: #ff7b3a;
+      --accent-red: #ff4b5c;
+      --accent-blue: #3c91e6;
+      --paper-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      --border-rough: 3px solid #2b2620;
+      --ui-radius: 14px;
+      --transition-fast: 0.15s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: radial-gradient(circle at top, #fffaf0 0%, #f0e0c8 70%);
+      color: var(--ink-dark);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #game-shell {
+      position: relative;
+      width: 960px;
+      height: 600px;
+      background: repeating-linear-gradient(
+          135deg,
+          #fffdf7 0px,
+          #fffdf7 14px,
+          #f9f0dd 15px,
+          #f9f0dd 16px
+        );
+      border-radius: 24px;
+      box-shadow: var(--paper-shadow);
+      border: 4px solid #2b2620;
+      overflow: hidden;
+    }
+
+    #game-inner-frame {
+      position: absolute;
+      inset: 16px;
+      border-radius: 20px;
+      border: 3px dashed rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      background: #fefaf4;
+    }
+
+    /* ============= MENU / UI ============= */
+
+    #menu-screen,
+    #overlay-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.95), rgba(248,242,233,0.96));
+      z-index: 5;
+    }
+
+    #menu-screen.hidden,
+    #overlay-screen.hidden {
+      display: none;
+    }
+
+    #logo-area {
+      width: 360px;
+      height: 120px;
+      border-radius: 18px;
+      border: 3px dashed rgba(0, 0, 0, 0.35);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: repeating-linear-gradient(
+          -45deg,
+          #fffdf7 0,
+          #fffdf7 8px,
+          #f7ecdd 9px,
+          #f7ecdd 10px
+        );
+    }
+
+    #logo-area span {
+      font-family: "Comic Sans MS", "Marker Felt", system-ui;
+      font-size: 20px;
+      color: var(--ink-light);
+      text-align: center;
+    }
+
+    /*
+      TODO: Replace logo placeholder:
+      - You can remove the span and instead add:
+        <img src="assets/snackventure-logo.png" alt="Snackventure logo" style="max-width:100%;max-height:100%;" />
+      - Put your logo image into the assets/ folder.
+    */
+
+    #menu-title {
+      margin: 8px 0 4px;
+      font-family: "Comic Sans MS", "Marker Felt", system-ui;
+      font-size: 36px;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0 #ffe4a0;
+    }
+
+    #menu-subtitle {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: var(--ink-light);
+    }
+
+    #character-grid {
+      display: flex;
+      gap: 18px;
+      margin: 12px 0 8px;
+    }
+
+    .char-card {
+      width: 180px;
+      height: 210px;
+      border-radius: var(--ui-radius);
+      border: var(--border-rough);
+      background: #fffaf4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background 0.1s ease-out;
+    }
+
+    .char-card:hover {
+      transform: translateY(-3px) rotate(-1deg);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+      background: #fff6e3;
+    }
+
+    .char-card.selected {
+      outline: 3px solid var(--accent-blue);
+      box-shadow: 0 0 0 4px rgba(60, 145, 230, 0.35);
+    }
+
+    .sprite-placeholder {
+      width: 96px;
+      height: 96px;
+      border-radius: 12px;
+      border: 2px dashed rgba(0, 0, 0, 0.4);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      padding: 4px;
+      background: #fff;
+    }
+
+    /*
+      TODO: Replace character placeholders:
+      - Remove the text inside .sprite-placeholder and add <img> tags:
+        <img src="assets/nacho-idle.png" alt="Nacho Man" style="max-width:100%;max-height:100%;" />
+      - Do this for popcorn and cheeto sprites too.
+    */
+
+    .char-name {
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .char-desc {
+      font-size: 11px;
+      text-align: center;
+      color: var(--ink-light);
+    }
+
+    #menu-bottom-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pill-label {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0.7);
+      background: #fffaf2;
+    }
+
+    #start-button {
+      padding: 8px 22px;
+      border-radius: 20px;
+      border: 3px solid #2b2620;
+      background: var(--accent-orange);
+      color: #2b2620;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter 0.1s;
+    }
+
+    #start-button:disabled {
+      filter: grayscale(0.7);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #start-button:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 rgba(0, 0, 0, 0.3);
+      filter: brightness(1.05);
+    }
+
+    #hint-text {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--ink-light);
+      text-align: center;
+    }
+
+    /* ============= HUD ============= */
+
+    #hud {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      top: 12px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 252, 244, 0.9);
+      border: 2px solid rgba(0, 0, 0, 0.6);
+      font-size: 13px;
+      z-index: 2;
+    }
+
+    #hud-left,
+    #hud-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hud-tag {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0.7);
+      background: #fff6e5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .health-heart {
+      width: 14px;
+      height: 14px;
+      border-radius: 50% 50% 50% 0;
+      background: var(--accent-red);
+      transform: rotate(-45deg);
+      box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .health-heart::after {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      top: -7px;
+      left: 0;
+    }
+
+    .health-heart::before {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      top: 0;
+      left: 7px;
+    }
+
+    /* ============= OVERLAY (PAUSE / WIN / GAME OVER) ============= */
+
+    #overlay-card {
+      width: 420px;
+      border-radius: 22px;
+      border: var(--border-rough);
+      background: #fffaf2;
+      box-shadow: var(--paper-shadow);
+      padding: 18px 22px 16px;
+      text-align: center;
+    }
+
+    #overlay-title {
+      font-size: 26px;
+      margin-bottom: 4px;
+      font-family: "Comic Sans MS", "Marker Felt", system-ui;
+    }
+
+    #overlay-text {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--ink-light);
+    }
+
+    #overlay-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .btn-small {
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 2px solid #2b2620;
+      background: #ffe3a3;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-small:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    /* ============= CANVAS ============= */
+
+    #game-canvas {
+      display: block;
+      position: absolute;
+      inset: 0 0 0 0;
+      margin: auto;
+      /* Hand-drawn edge */
+      image-rendering: pixelated;
+      background: #b7e0ff;
+    }
+
+    /* Simple pause hint */
+    #pause-hint {
+      position: absolute;
+      right: 22px;
+      bottom: 18px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid rgba(0, 0, 0, 0.4);
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-shell">
+    <div id="game-inner-frame">
+      <!-- ===== MENU SCREEN (CHARACTER SELECT + LOGO PLACEHOLDER) ===== -->
+      <div id="menu-screen">
+        <div id="logo-area">
+          <!--
+            TODO: Put your Snackventure logo sprite here.
+            Example:
+            <img src="assets/snackventure-logo.png" alt="Snackventure logo" style="max-width:100%;max-height:100%;" />
+          -->
+          <span>Drop your<br />Snackventure logo here</span>
+        </div>
+
+        <h1 id="menu-title">Snackventure</h1>
+        <p id="menu-subtitle">A hand‑drawn snack hero platformer</p>
+
+        <div id="character-grid">
+          <!-- Nacho Man card -->
+          <button class="char-card" data-char="nacho">
+            <div class="sprite-placeholder">
+              Nacho Man sprite<br />goes here
+            </div>
+            <div class="char-name">Nacho Man</div>
+            <div class="char-desc">
+              Crispy jumps, balanced speed. Boss: Evil Kurkure.
+            </div>
+          </button>
+
+          <!-- Popcorn Man card -->
+          <button class="char-card" data-char="popcorn">
+            <div class="sprite-placeholder">
+              Popcorn Man sprite<br />goes here
+            </div>
+            <div class="char-name">Popcorn Man</div>
+            <div class="char-desc">
+              Floaty jumps, easier control. Boss: The One Chip.
+            </div>
+          </button>
+
+          <!-- Cheeto Man card -->
+          <button class="char-card" data-char="cheeto">
+            <div class="sprite-placeholder">
+              Cheeto Man sprite<br />goes here
+            </div>
+            <div class="char-name">Cheeto Man</div>
+            <div class="char-desc">
+              Super fast runner. Boss: Taki Man.
+            </div>
+          </button>
+        </div>
+
+        <div id="menu-bottom-row">
+          <span class="pill-label">Controls: ← → to move, Space / ↑ to jump, Esc to pause</span>
+          <button id="start-button" disabled>Start Adventure</button>
+        </div>
+
+        <div id="hint-text">
+          Tip: Click a hero card to select your snack. Then hit Start Adventure!
+        </div>
+      </div>
+
+      <!-- ===== HUD ===== -->
+      <div id="hud">
+        <div id="hud-left">
+          <div class="hud-tag">
+            <strong>Hero:</strong>
+            <span id="hud-character">None</span>
+          </div>
+          <div class="hud-tag">
+            <strong>Villain:</strong>
+            <span id="hud-villain">–</span>
+          </div>
+          <div class="hud-tag">
+            <strong>Level:</strong>
+            <span id="hud-level">–</span>
+          </div>
+        </div>
+        <div id="hud-right">
+          <div class="hud-tag">
+            <strong>Health:</strong>
+            <span id="hud-health-hearts"></span>
+          </div>
+          <div class="hud-tag">
+            <strong>Snacks:</strong>
+            <span id="hud-score">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="pause-hint">Esc = Pause • R = Restart level</div>
+
+      <!-- ===== OVERLAY SCREEN (PAUSE / WIN / GAME OVER) ===== -->
+      <div id="overlay-screen" class="hidden">
+        <div id="overlay-card">
+          <div id="overlay-title">Paused</div>
+          <div id="overlay-text">
+            Take a break, snack hero. Press Esc again to continue.
+          </div>
+          <div id="overlay-buttons">
+            <button class="btn-small" id="btn-resume">Resume</button>
+            <button class="btn-small" id="btn-restart">Restart Level</button>
+            <button class="btn-small" id="btn-back-menu">Back to Menu</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MAIN GAME CANVAS ===== -->
+      <canvas id="game-canvas" width="960" height="540"></canvas>
+    </div>
+  </div>
+
+  <script>
+    /*
+      =============================
+      SNACKVENTURE CORE GAME CODE
+      =============================
+
+      Quick overview of the level format:
+
+      - The world is made of a 2D grid of characters.
+      - Each character in the grid means:
+
+        "." = empty
+        "#" = solid ground/platform
+        "-" = thin floating platform (you can jump up through it)
+        "^" = spike (hurts player)
+        "C" = snack collectible (adds score)
+        "E" = small enemy
+        "S" = player start position
+        "G" = goal flag (end of level)
+        "B" = boss spawn (only in final level)
+
+      You can edit the levelLayouts array below to make more levels.
+    */
+
+    // ====== BASIC SETUP ======
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const TILE_SIZE = 48;
+
+    let lastTime = 0;
+    let gameState = "menu"; // "menu" | "playing" | "paused" | "level-complete" | "game-over" | "boss-defeated"
+    let keys = {};
+
+    // DOM references
+    const menuScreen = document.getElementById("menu-screen");
+    const overlayScreen = document.getElementById("overlay-screen");
+    const overlayTitle = document.getElementById("overlay-title");
+    const overlayText = document.getElementById("overlay-text");
+    const btnResume = document.getElementById("btn-resume");
+    const btnRestart = document.getElementById("btn-restart");
+    const btnBackMenu = document.getElementById("btn-back-menu");
+    const startButton = document.getElementById("start-button");
+    const charCards = Array.from(document.querySelectorAll(".char-card"));
+
+    const hudCharacter = document.getElementById("hud-character");
+    const hudVillain = document.getElementById("hud-villain");
+    const hudLevel = document.getElementById("hud-level");
+    const hudHealthHearts = document.getElementById("hud-health-hearts");
+    const hudScore = document.getElementById("hud-score");
+
+    // ====== CHARACTER / VILLAIN CONFIG ======
+
+    const HERO_CONFIG = {
+      nacho: {
+        displayName: "Nacho Man",
+        // Slightly higher jump, medium speed
+        moveSpeed: 6.0,
+        jumpStrength: 15.5,
+        color: "#ffb347"
+      },
+      popcorn: {
+        displayName: "Popcorn Man",
+        // Slower move, floatier jump
+        moveSpeed: 5.0,
+        jumpStrength: 16.5,
+        color: "#fff7b2"
+      },
+      cheeto: {
+        displayName: "Cheeto Man",
+        // Faster move, regular jump
+        moveSpeed: 7.2,
+        jumpStrength: 15.0,
+        color: "#ff9a3c"
+      }
+    };
+
+    const VILLAIN_CONFIG = {
+      nacho: {
+        id: "evilKurkure",
+        displayName: "Evil Kurkure"
+      },
+      popcorn: {
+        id: "oneChip",
+        displayName: "The One Chip"
+      },
+      cheeto: {
+        id: "takiMan",
+        displayName: "Taki Man"
+      }
+    };
+
+    /*
+      TODO: ASSET PATHS
+      ------------------
+      Change these paths to where you put your art.
+
+      Example file structure:
+        snackventure.html
+        assets/
+          snackventure-logo.png
+          tiles-ground.png
+          tiles-platform.png
+          spikes.png
+          snack-collectible.png
+          flag-goal.png
+          bg-layer1.png
+          hero-nacho.png
+          hero-popcorn.png
+          hero-cheeto.png
+          boss-evil-kurkure.png
+          boss-one-chip.png
+          boss-taki-man.png
+    */
+    const ASSET_PATHS = {
+      background: "assets/bg-layer1.png", // TODO
+      tiles: {
+        ground: "assets/tiles-ground.png", // TODO
+        platform: "assets/tiles-platform.png", // TODO
+        spike: "assets/spikes.png", // TODO
+        collectible: "assets/snack-collectible.png", // TODO
+        goal: "assets/flag-goal.png" // TODO
+      },
+      heroes: {
+        nacho: "assets/hero-nacho.png", // TODO
+        popcorn: "assets/hero-popcorn.png", // TODO
+        cheeto: "assets/hero-cheeto.png" // TODO
+      },
+      bosses: {
+        evilKurkure: "assets/boss-evil-kurkure.png", // TODO
+        oneChip: "assets/boss-one-chip.png", // TODO
+        takiMan: "assets/boss-taki-man.png" // TODO
+      }
+    };
+
+    // Simple image loader
+    function loadImage(path) {
+      const img = new Image();
+      img.src = path;
+      return img;
+    }
+
+    const IMAGES = {
+      background: loadImage(ASSET_PATHS.background),
+      tiles: {
+        ground: loadImage(ASSET_PATHS.tiles.ground),
+        platform: loadImage(ASSET_PATHS.tiles.platform),
+        spike: loadImage(ASSET_PATHS.tiles.spike),
+        collectible: loadImage(ASSET_PATHS.tiles.collectible),
+        goal: loadImage(ASSET_PATHS.tiles.goal)
+      },
+      heroes: {
+        nacho: loadImage(ASSET_PATHS.heroes.nacho),
+        popcorn: loadImage(ASSET_PATHS.heroes.popcorn),
+        cheeto: loadImage(ASSET_PATHS.heroes.cheeto)
+      },
+      bosses: {
+        evilKurkure: loadImage(ASSET_PATHS.bosses.evilKurkure),
+        oneChip: loadImage(ASSET_PATHS.bosses.oneChip),
+        takiMan: loadImage(ASSET_PATHS.bosses.takiMan)
+      }
+    };
+
+    // ====== LEVEL DATA ======
+
+    /*
+      You can edit these level layouts or add more.
+      Try to keep all rows the same length.
+
+      Use:
+        - "." empty
+        - "#" solid ground
+        - "-" floating platform
+        - "^" spikes
+        - "C" snack collectible
+        - "E" enemy
+        - "S" player start
+        - "G" goal
+        - "B" boss (final level only)
+    */
+    const levelLayouts = [
+      {
+        name: "1 - Crunchy Introduction",
+        rows: [
+          "....................",
+          "....................",
+          "....................",
+          "..........C.........",
+          "....................",
+          "......C.......E.....",
+          "....................",
+          "S#####.......#####G.",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "2 - Popcorn Peaks",
+        rows: [
+          "....................",
+          "....................",
+          "..C.................",
+          ".....---............",
+          "....................",
+          "....C......E....C...",
+          "..........#####.....",
+          "S#####...........G..",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "3 - Spicy Canyon",
+        rows: [
+          "....................",
+          "....................",
+          "......C.............",
+          "..........E.........",
+          ".....^^^............",
+          ".............C......",
+          ".....######.........",
+          "S####......#####..G.",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "4 - Snack Mine",
+        rows: [
+          "....................",
+          "....................",
+          "...C..........C.....",
+          "....................",
+          ".....---......---...",
+          "........E..........C",
+          "....................",
+          "S#####......#####.G.",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "5 - Final Crunch (Boss)",
+        rows: [
+          "....................",
+          "....................",
+          "....................",
+          "....................",
+          "......C.............",
+          "..........B.........",
+          "....................",
+          "S#####..........G...",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      }
+    ];
+
+    // ====== LEVEL / WORLD STRUCTURES ======
+
+    class Tile {
+      constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.w = TILE_SIZE;
+        this.h = TILE_SIZE;
+        this.type = type; // "ground" | "platform" | "spike"
+      }
+    }
+
+    class Collectible {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.w = TILE_SIZE * 0.6;
+        this.h = TILE_SIZE * 0.6;
+        this.collected = false;
+      }
+    }
+
+    class Enemy {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.w = TILE_SIZE * 0.8;
+        this.h = TILE_SIZE * 0.8;
+        this.vx = 2.2 * (Math.random() < 0.5 ? -1 : 1);
+        this.vy = 0;
+        this.onGround = false;
+        this.patrolRange = 3 * TILE_SIZE;
+        this.baseX = x;
+        this.speed = 2.2;
+        this.alive = true;
+        this.animTime = 0;
+      }
+    }
+
+    class Boss {
+      constructor(x, y, id) {
+        this.x = x;
+        this.y = y;
+        this.w = TILE_SIZE * 2;
+        this.h = TILE_SIZE * 2;
+        this.vx = 2.5;
+        this.vy = 0;
+        this.id = id; // "evilKurkure" | "oneChip" | "takiMan"
+        this.health = 6;
+        this.maxHealth = 6;
+        this.onGround = false;
+        this.phase = 1;
+        this.animTime = 0;
+        this.dir = 1;
+      }
+    }
+
+    class Player {
+      constructor(x, y, heroKey) {
+        this.x = x;
+        this.y = y;
+        this.w = TILE_SIZE * 0.8;
+        this.h = TILE_SIZE * 0.9;
+        this.vx = 0;
+        this.vy = 0;
+        this.onGround = false;
+        this.heroKey = heroKey;
+        this.color = HERO_CONFIG[heroKey].color;
+        this.moveSpeed = HERO_CONFIG[heroKey].moveSpeed;
+        this.jumpStrength = HERO_CONFIG[heroKey].jumpStrength;
+        this.health = 3;
+        this.maxHealth = 3;
+        this.score = 0;
+        this.facing = 1;
+        this.animTime = 0;
+        this.state = "idle"; // "idle" | "run" | "jump" | "hurt"
+        this.invincibleTime = 0;
+      }
+    }
+
+    let currentLevelIndex = 0;
+    let world = null;
+    let player = null;
+    let boss = null;
+    let selectedHeroKey = null;
+    let selectedVillainInfo = null;
+    let cameraX = 0;
+
+    function buildLevel(levelIndex) {
+      const layout = levelLayouts[levelIndex];
+      const rows = layout.rows;
+      const tiles = [];
+      const platforms = [];
+      const spikes = [];
+      const collectibles = [];
+      const enemies = [];
+      let startX = 0;
+      let startY = 0;
+      let goal = { x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE };
+      let bossSpawn = null;
+
+      for (let row = 0; row < rows.length; row++) {
+        const line = rows[row];
+        for (let col = 0; col < line.length; col++) {
+          const ch = line[col];
+          const x = col * TILE_SIZE;
+          const y = row * TILE_SIZE;
+
+          switch (ch) {
+            case "#":
+              tiles.push(new Tile(x, y, "ground"));
+              break;
+            case "-":
+              platforms.push(new Tile(x, y, "platform"));
+              break;
+            case "^":
+              spikes.push(new Tile(x, y, "spike"));
+              break;
+            case "C":
+              collectibles.push(
+                new Collectible(x + TILE_SIZE * 0.2, y + TILE_SIZE * 0.2)
+              );
+              break;
+            case "E":
+              enemies.push(new Enemy(x + TILE_SIZE * 0.1, y + TILE_SIZE * 0.2));
+              break;
+            case "S":
+              startX = x + TILE_SIZE * 0.2;
+              startY = y - TILE_SIZE * 0.2;
+              break;
+            case "G":
+              goal = { x: x + TILE_SIZE * 0.1, y, w: TILE_SIZE * 0.8, h: TILE_SIZE };
+              break;
+            case "B":
+              bossSpawn = { x: x + TILE_SIZE * 0.1, y: y - TILE_SIZE };
+              break;
+          }
+        }
+      }
+
+      const levelWidth = rows[0].length * TILE_SIZE;
+      const levelHeight = rows.length * TILE_SIZE;
+
+      world = {
+        tiles,
+        platforms,
+        spikes,
+        collectibles,
+        enemies,
+        goal,
+        bossSpawn,
+        width: levelWidth,
+        height: levelHeight,
+        name: layout.name
+      };
+
+      boss = null;
+      if (levelIndex === levelLayouts.length - 1 && bossSpawn && selectedVillainInfo) {
+        boss = new Boss(bossSpawn.x, bossSpawn.y, selectedVillainInfo.id);
+      }
+
+      player.x = startX;
+      player.y = startY;
+      player.vx = 0;
+      player.vy = 0;
+      cameraX = 0;
+    }
+
+    function resetPlayerForLevel(heroKey) {
+      player = new Player(0, 0, heroKey);
+    }
+
+    // ====== INPUT HANDLING ======
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+
+      if (e.key === "Escape") {
+        if (gameState === "playing") {
+          setPause(true);
+        } else if (gameState === "paused") {
+          setPause(false);
+        }
+      }
+      if ((e.key === "r" || e.key === "R") && gameState === "playing") {
+        restartLevel();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    // ====== COLLISION HELPERS ======
+    function aabb(a, b) {
+      return (
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y
+      );
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    // ====== PHYSICS & UPDATE ======
+    const GRAVITY = 52; // pixels/s^2 (scaled by dt)
+
+    function updatePlayer(dt) {
+      if (!player || !world) return;
+
+      const LEFT = keys["ArrowLeft"] || keys["a"] || keys["A"];
+      const RIGHT = keys["ArrowRight"] || keys["d"] || keys["D"];
+      const JUMP = keys["ArrowUp"] || keys["w"] || keys["W"] || keys[" "];
+
+      // Horizontal
+      let targetVx = 0;
+      if (LEFT) targetVx -= player.moveSpeed;
+      if (RIGHT) targetVx += player.moveSpeed;
+      player.vx = targetVx;
+
+      if (player.vx !== 0) {
+        player.facing = player.vx > 0 ? 1 : -1;
+      }
+
+      // Jump
+      if (JUMP && player.onGround) {
+        player.vy = -player.jumpStrength;
+        player.onGround = false;
+      }
+
+      // Gravity
+      player.vy += GRAVITY * dt;
+
+      // Apply velocities
+      player.x += player.vx;
+      resolveCollisions(player, world.tiles, world.platforms, "x");
+
+      player.y += player.vy;
+      player.onGround = false;
+      resolveCollisions(player, world.tiles, world.platforms, "y");
+
+      // Check spikes
+      world.spikes.forEach((spike) => {
+        if (aabb(player, spike)) {
+          damagePlayer(1);
+        }
+      });
+
+      // Collectibles
+      world.collectibles.forEach((c) => {
+        if (!c.collected && aabb(player, c)) {
+          c.collected = true;
+          player.score += 10;
+        }
+      });
+
+      // Enemies
+      world.enemies.forEach((enemy) => {
+        if (!enemy.alive) return;
+        if (aabb(player, enemy)) {
+          // If player is falling onto enemy -> stomp
+          if (player.vy > 0 && player.y + player.h - 10 < enemy.y) {
+            enemy.alive = false;
+            player.vy = -player.jumpStrength * 0.8;
+            player.score += 20;
+          } else {
+            damagePlayer(1);
+          }
+        }
+      });
+
+      // Boss
+      if (boss && boss.health > 0 && aabb(player, boss)) {
+        // Stomp top of boss
+        if (player.vy > 0 && player.y + player.h - 10 < boss.y) {
+          boss.health -= 1;
+          player.vy = -player.jumpStrength * 0.9;
+          if (boss.health <= 0) {
+            bossDefeated();
+          }
+        } else {
+          damagePlayer(2);
+        }
+      }
+
+      // Goal
+      if (aabb(player, world.goal)) {
+        levelComplete();
+      }
+
+      // Bounds / fall off map
+      if (player.y > world.height + 200) {
+        damagePlayer(player.maxHealth); // insta-death
+      }
+
+      // Update animation state
+      player.animTime += dt;
+      if (player.invincibleTime > 0) {
+        player.invincibleTime -= dt;
+      }
+
+      if (!player.onGround) {
+        player.state = "jump";
+      } else if (Math.abs(player.vx) > 0.1) {
+        player.state = "run";
+      } else {
+        player.state = "idle";
+      }
+
+      // Camera
+      const centerX = player.x + player.w / 2;
+      cameraX = clamp(
+        centerX - WIDTH / 2,
+        0,
+        Math.max(0, world.width - WIDTH)
+      );
+    }
+
+    function resolveCollisions(entity, solidTiles, platforms, axis) {
+      // Solid ground / walls
+      for (const tile of solidTiles) {
+        if (!aabb(entity, tile)) continue;
+        if (axis === "x") {
+          if (entity.vx > 0) {
+            entity.x = tile.x - entity.w;
+          } else if (entity.vx < 0) {
+            entity.x = tile.x + tile.w;
+          }
+          entity.vx = 0;
+        } else if (axis === "y") {
+          if (entity.vy > 0) {
+            entity.y = tile.y - entity.h;
+            entity.vy = 0;
+            entity.onGround = true;
+          } else if (entity.vy < 0) {
+            entity.y = tile.y + tile.h;
+            entity.vy = 0;
+          }
+        }
+      }
+
+      // One-way platforms (only when falling down)
+      if (axis === "y" && entity.vy >= 0) {
+        for (const p of platforms) {
+          const epsilon = 4;
+          const belowTop = entity.y + entity.h <= p.y + epsilon;
+          if (!belowTop) continue;
+          if (
+            entity.x < p.x + p.w &&
+            entity.x + entity.w > p.x &&
+            entity.y + entity.h > p.y &&
+            entity.y + entity.h < p.y + p.h
+          ) {
+            entity.y = p.y - entity.h;
+            entity.vy = 0;
+            entity.onGround = true;
+          }
+        }
+      }
+    }
+
+    function damagePlayer(amount) {
+      if (!player) return;
+      if (player.invincibleTime > 0) return;
+
+      player.health -= amount;
+      player.invincibleTime = 1.0;
+      player.state = "hurt";
+
+      if (player.health <= 0) {
+        player.health = 0;
+        triggerGameOver();
+      }
+    }
+
+    function updateEnemies(dt) {
+      if (!world) return;
+      world.enemies.forEach((enemy) => {
+        if (!enemy.alive) return;
+
+        enemy.animTime += dt;
+
+        // Simple side-to-side patrol
+        enemy.vy += GRAVITY * dt;
+        enemy.x += enemy.vx;
+        enemy.y += enemy.vy;
+        enemy.onGround = false;
+
+        // Collide with ground
+        resolveCollisions(enemy, world.tiles, [], "x");
+        resolveCollisions(enemy, world.tiles, [], "y");
+
+        // Patrol flip when too far from base
+        const distFromBase = Math.abs(enemy.x - enemy.baseX);
+        if (distFromBase > enemy.patrolRange) {
+          enemy.vx *= -1;
+        }
+      });
+    }
+
+    function updateBoss(dt) {
+      if (!boss || boss.health <= 0 || !world) return;
+
+      boss.animTime += dt;
+      boss.vy += GRAVITY * dt;
+
+      // Simple pattern: walk left/right and sometimes jump
+      boss.x += boss.vx * boss.dir;
+      boss.y += boss.vy;
+
+      resolveCollisions(boss, world.tiles, [], "x");
+      resolveCollisions(boss, world.tiles, [], "y");
+
+      // Flip direction when hitting walls
+      if (boss.x < 0) {
+        boss.x = 0;
+        boss.dir = 1;
+      } else if (boss.x + boss.w > world.width) {
+        boss.x = world.width - boss.w;
+        boss.dir = -1;
+      }
+
+      // Occasional jump based on phase
+      const jumpChance = boss.phase === 1 ? 0.002 : 0.004;
+      if (Math.random() < jumpChance && boss.onGround) {
+        boss.vy = -22;
+        boss.onGround = false;
+      }
+
+      // Increase aggression when low health
+      if (boss.health <= boss.maxHealth / 2 && boss.phase === 1) {
+        boss.phase = 2;
+        boss.vx *= 1.3;
+      }
+    }
+
+    function update(dt) {
+      if (gameState !== "playing") return;
+      updatePlayer(dt);
+      updateEnemies(dt);
+      updateBoss(dt);
+      updateHUD();
+    }
+
+    // ====== RENDERING ======
+    function drawBackground() {
+      // Soft sky
+      ctx.fillStyle = "#b7e0ff";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Parallax hills / doodles
+      ctx.save();
+      ctx.translate(-cameraX * 0.3, 0);
+
+      const hillColor = "#9fd7ff";
+      ctx.fillStyle = hillColor;
+      for (let i = -1; i < 10; i++) {
+        const hx = i * 260;
+        const hy = HEIGHT - 180;
+        ctx.beginPath();
+        ctx.moveTo(hx, HEIGHT);
+        ctx.quadraticCurveTo(hx + 130, hy - 80, hx + 260, HEIGHT);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function drawTiles() {
+      if (!world) return;
+
+      const tiles = [
+        ...world.tiles.map((t) => ({ ...t, type: "ground" })),
+        ...world.platforms.map((p) => ({ ...p, type: "platform" })),
+        ...world.spikes.map((s) => ({ ...s, type: "spike" }))
+      ];
+
+      for (const tile of tiles) {
+        const screenX = tile.x - cameraX;
+        const screenY = tile.y;
+        if (screenX + tile.w < 0 || screenX > WIDTH) continue;
+
+        ctx.save();
+        ctx.translate(screenX, screenY);
+
+        if (tile.type === "ground") {
+          if (IMAGES.tiles.ground && IMAGES.tiles.ground.complete) {
+            ctx.drawImage(IMAGES.tiles.ground, 0, 0, tile.w, tile.h);
+          } else {
+            // Hand-drawn style fallback
+            ctx.fillStyle = "#f9c784";
+            ctx.fillRect(0, 0, tile.w, tile.h);
+            ctx.strokeStyle = "#543b2f";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(2, 2, tile.w - 4, tile.h - 4);
+          }
+        } else if (tile.type === "platform") {
+          if (IMAGES.tiles.platform && IMAGES.tiles.platform.complete) {
+            ctx.drawImage(IMAGES.tiles.platform, 0, 0, tile.w, tile.h);
+          } else {
+            ctx.fillStyle = "#ffe2a9";
+            ctx.fillRect(0, tile.h / 2, tile.w, tile.h / 2);
+            ctx.strokeStyle = "#543b2f";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(2, tile.h / 2 + 1, tile.w - 4, tile.h / 2 - 2);
+          }
+        } else if (tile.type === "spike") {
+          if (IMAGES.tiles.spike && IMAGES.tiles.spike.complete) {
+            ctx.drawImage(IMAGES.tiles.spike, 0, 0, tile.w, tile.h);
+          } else {
+            ctx.fillStyle = "#ff4b5c";
+            ctx.beginPath();
+            ctx.moveTo(0, tile.h);
+            ctx.lineTo(tile.w * 0.25, tile.h * 0.3);
+            ctx.lineTo(tile.w * 0.5, tile.h);
+            ctx.lineTo(tile.w * 0.75, tile.h * 0.3);
+            ctx.lineTo(tile.w, tile.h);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#931824";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // Goal
+      const g = world.goal;
+      const gx = g.x - cameraX;
+      if (gx + g.w >= 0 && gx <= WIDTH) {
+        ctx.save();
+        ctx.translate(gx, g.y - TILE_SIZE * 0.5);
+        if (IMAGES.tiles.goal && IMAGES.tiles.goal.complete) {
+          ctx.drawImage(IMAGES.tiles.goal, 0, 0, g.w, g.h * 1.5);
+        } else {
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#2b2620";
+          ctx.lineWidth = 3;
+          ctx.fillRect(8, 0, g.w - 16, g.h);
+          ctx.strokeRect(8, 0, g.w - 16, g.h);
+          ctx.fillStyle = "#ffcc00";
+          ctx.fillText("G", g.w / 2 - 4, g.h / 2 + 4);
+          ctx.fillStyle = "#71501b";
+          ctx.fillRect(g.w - 8, 0, 6, g.h * 1.5);
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawCollectibles() {
+      if (!world) return;
+      world.collectibles.forEach((c) => {
+        if (c.collected) return;
+        const sx = c.x - cameraX;
+        const sy = c.y;
+        if (sx + c.w < 0 || sx > WIDTH) return;
+
+        ctx.save();
+        ctx.translate(sx + c.w / 2, sy + c.h / 2);
+        const bob = Math.sin(performance.now() / 300 + sx * 0.02) * 4;
+        ctx.translate(0, bob);
+
+        if (IMAGES.tiles.collectible && IMAGES.tiles.collectible.complete) {
+          ctx.drawImage(
+            IMAGES.tiles.collectible,
+            -c.w / 2,
+            -c.h / 2,
+            c.w,
+            c.h
+          );
+        } else {
+          ctx.fillStyle = "#ffe066";
+          ctx.beginPath();
+          ctx.arc(0, 0, c.w / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#c49a00";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      });
+    }
+
+    function drawEnemies() {
+      if (!world) return;
+      world.enemies.forEach((enemy) => {
+        if (!enemy.alive) return;
+        const sx = enemy.x - cameraX;
+        const sy = enemy.y;
+        if (sx + enemy.w < 0 || sx > WIDTH) return;
+
+        ctx.save();
+        ctx.translate(sx, sy);
+
+        // Simple squishy animation
+        const squish = 1 + Math.sin(enemy.animTime * 6) * 0.08;
+        ctx.translate(enemy.w / 2, enemy.h / 2);
+        ctx.scale(1, squish);
+        ctx.translate(-enemy.w / 2, -enemy.h / 2);
+
+        ctx.fillStyle = "#ff8b94";
+        ctx.strokeStyle = "#2b2620";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, enemy.w, enemy.h, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        // Eyes
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(enemy.w * 0.35, enemy.h * 0.35, 4, 0, Math.PI * 2);
+        ctx.arc(enemy.w * 0.65, enemy.h * 0.35, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(enemy.w * 0.37, enemy.h * 0.37, 2, 0, Math.PI * 2);
+        ctx.arc(enemy.w * 0.67, enemy.h * 0.37, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      });
+    }
+
+    function drawBoss() {
+      if (!boss || boss.health <= 0) return;
+      const sx = boss.x - cameraX;
+      const sy = boss.y;
+      if (sx + boss.w < 0 || sx > WIDTH) return;
+
+      ctx.save();
+      ctx.translate(sx, sy);
+
+      // Slight bobbing
+      const bob = Math.sin(boss.animTime * 2) * 4;
+      ctx.translate(0, bob);
+
+      const img = IMAGES.bosses[boss.id];
+      if (img && img.complete) {
+        ctx.drawImage(img, 0, 0, boss.w, boss.h);
+      } else {
+        // Fallback big doodle
+        ctx.fillStyle = "#d88cff";
+        ctx.strokeStyle = "#2b2620";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, boss.w, boss.h, 18);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(boss.w * 0.3, boss.h * 0.35, 7, 0, Math.PI * 2);
+        ctx.arc(boss.w * 0.7, boss.h * 0.35, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(boss.w * 0.32, boss.h * 0.37, 3, 0, Math.PI * 2);
+        ctx.arc(boss.w * 0.72, boss.h * 0.37, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#000";
+        ctx.beginPath();
+        ctx.moveTo(boss.w * 0.25, boss.h * 0.68);
+        ctx.quadraticCurveTo(
+          boss.w * 0.5,
+          boss.h * (boss.phase === 1 ? 0.55 : 0.8),
+          boss.w * 0.75,
+          boss.h * 0.68
+        );
+        ctx.stroke();
+      }
+
+      // Boss health bar
+      const barW = boss.w;
+      const barH = 10;
+      const hpRatio = boss.health / boss.maxHealth;
+      ctx.translate(0, -16);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, barW, barH);
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, barW, barH);
+      ctx.fillStyle = "#ff4b5c";
+      ctx.fillRect(0, 0, barW * hpRatio, barH);
+
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      if (!player) return;
+
+      const sx = player.x - cameraX;
+      const sy = player.y;
+
+      if (sx + player.w < 0 || sx > WIDTH) return;
+
+      ctx.save();
+      ctx.translate(sx + player.w / 2, sy + player.h / 2);
+
+      // Simple bobbing animation
+      const bob =
+        player.state === "idle"
+          ? Math.sin(player.animTime * 4) * 2
+          : player.state === "run"
+          ? Math.sin(player.animTime * 20) * 2
+          : 0;
+      ctx.translate(0, bob);
+
+      // Small squash when landing
+      let scaleY = 1;
+      if (player.state === "run") {
+        scaleY = 1 + Math.sin(player.animTime * 20) * 0.05;
+      }
+      ctx.scale(player.facing, scaleY);
+
+      const heroImg = IMAGES.heroes[player.heroKey];
+
+      const flicker =
+        player.invincibleTime > 0 &&
+        (Math.floor(player.invincibleTime * 10) % 2 === 0);
+
+      if (!flicker) {
+        if (heroImg && heroImg.complete) {
+          // Draw your hero sprite
+          ctx.drawImage(
+            heroImg,
+            -player.w / 2,
+            -player.h / 2,
+            player.w,
+            player.h
+          );
+        } else {
+          // Fallback doodle character
+          ctx.fillStyle = player.color;
+          ctx.strokeStyle = "#2b2620";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(
+            -player.w / 2,
+            -player.h / 2,
+            player.w,
+            player.h,
+            10
+          );
+          ctx.fill();
+          ctx.stroke();
+
+          // Eyes
+          ctx.fillStyle = "#fff";
+          ctx.beginPath();
+          ctx.arc(-player.w * 0.1, -player.h * 0.1, 4, 0, Math.PI * 2);
+          ctx.arc(player.w * 0.1, -player.h * 0.1, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#000";
+          ctx.beginPath();
+          ctx.arc(-player.w * 0.08, -player.h * 0.08, 2, 0, Math.PI * 2);
+          ctx.arc(player.w * 0.12, -player.h * 0.08, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawWorld() {
+      drawBackground();
+      drawTiles();
+      drawCollectibles();
+      drawEnemies();
+      drawBoss();
+      drawPlayer();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      drawWorld();
+    }
+
+    // ====== HUD & STATES ======
+    function updateHUD() {
+      if (!player || !world) return;
+
+      hudCharacter.textContent = HERO_CONFIG[player.heroKey].displayName;
+      hudVillain.textContent = selectedVillainInfo
+        ? selectedVillainInfo.displayName
+        : "–";
+      hudLevel.textContent = world.name;
+      hudScore.textContent = player.score;
+
+      // Hearts
+      hudHealthHearts.innerHTML = "";
+      for (let i = 0; i < player.maxHealth; i++) {
+        const heart = document.createElement("span");
+        heart.className = "health-heart";
+        if (i >= player.health) {
+          heart.style.filter = "grayscale(0.8)";
+          heart.style.opacity = "0.5";
+        }
+        hudHealthHearts.appendChild(heart);
+      }
+    }
+
+    function setPause(paused) {
+      if (paused) {
+        if (gameState !== "playing") return;
+        gameState = "paused";
+        overlayScreen.classList.remove("hidden");
+        overlayTitle.textContent = "Paused";
+        overlayText.textContent =
+          "Stretch your fingers, snack hero. Press Esc again to dive back in!";
+      } else {
+        if (gameState !== "paused") return;
+        gameState = "playing";
+        overlayScreen.classList.add("hidden");
+      }
+    }
+
+    function triggerGameOver() {
+      gameState = "game-over";
+      overlayScreen.classList.remove("hidden");
+      overlayTitle.textContent = "Game Over";
+      overlayText.textContent =
+        "Your snack hero got crunched! Want to retry this level or head back to the menu?";
+    }
+
+    function levelComplete() {
+      // If boss level and boss still alive, don't finish yet
+      if (boss && boss.health > 0) return;
+
+      if (currentLevelIndex < levelLayouts.length - 1) {
+        gameState = "level-complete";
+        overlayScreen.classList.remove("hidden");
+        overlayTitle.textContent = "Level Complete!";
+        overlayText.textContent =
+          "Nice! You cleared this stage. Press Resume to go to the next crunchy challenge.";
+      } else {
+        bossDefeated();
+      }
+    }
+
+    function bossDefeated() {
+      gameState = "boss-defeated";
+      overlayScreen.classList.remove("hidden");
+      overlayTitle.textContent = "Snack World Saved!";
+      overlayText.textContent =
+        "You defeated " +
+        (selectedVillainInfo ? selectedVillainInfo.displayName : "the boss") +
+        " and restored snack peace!";
+    }
+
+    function restartLevel() {
+      if (!selectedHeroKey) return;
+      resetPlayerForLevel(selectedHeroKey);
+      buildLevel(currentLevelIndex);
+      gameState = "playing";
+      overlayScreen.classList.add("hidden");
+    }
+
+    function goToNextLevel() {
+      currentLevelIndex++;
+      if (currentLevelIndex >= levelLayouts.length) {
+        currentLevelIndex = levelLayouts.length - 1;
+      }
+      restartLevel();
+    }
+
+    function backToMenu() {
+      gameState = "menu";
+      menuScreen.classList.remove("hidden");
+      overlayScreen.classList.add("hidden");
+      selectedHeroKey = null;
+      selectedVillainInfo = null;
+      player = null;
+      boss = null;
+      hudCharacter.textContent = "None";
+      hudVillain.textContent = "–";
+      hudLevel.textContent = "–";
+      hudScore.textContent = "0";
+      hudHealthHearts.innerHTML = "";
+      startButton.disabled = true;
+      charCards.forEach((c) => c.classList.remove("selected"));
+    }
+
+    // ====== CHARACTER SELECT LOGIC ======
+    charCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        charCards.forEach((c) => c.classList.remove("selected"));
+        card.classList.add("selected");
+        selectedHeroKey = card.dataset.char;
+        selectedVillainInfo = VILLAIN_CONFIG[selectedHeroKey];
+        startButton.disabled = false;
+      });
+    });
+
+    startButton.addEventListener("click", () => {
+      if (!selectedHeroKey) return;
+      menuScreen.classList.add("hidden");
+      currentLevelIndex = 0;
+      resetPlayerForLevel(selectedHeroKey);
+      buildLevel(currentLevelIndex);
+      updateHUD();
+      gameState = "playing";
+    });
+
+    // Overlay buttons
+    btnResume.addEventListener("click", () => {
+      if (gameState === "paused") {
+        setPause(false);
+      } else if (gameState === "level-complete") {
+        overlayScreen.classList.add("hidden");
+        goToNextLevel();
+      } else if (gameState === "game-over") {
+        overlayScreen.classList.add("hidden");
+        restartLevel();
+      } else if (gameState === "boss-defeated") {
+        // After victory, go to menu
+        backToMenu();
+      }
+    });
+
+    btnRestart.addEventListener("click", () => {
+      restartLevel();
+    });
+
+    btnBackMenu.addEventListener("click", () => {
+      backToMenu();
+    });
+
+    // ====== GAME LOOP ======
+    function loop(timestamp) {
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      update(dt);
+      render();
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
