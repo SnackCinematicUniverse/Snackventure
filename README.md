@@ -25,7 +25,6 @@ Reach the flag to complete each level
 Esc to pause, R to restart
 
 🌐 Built With
-Pure HTML, CSS and JavaScript — no libraries, no engines, just code.
+Pure HTML — no libraries, no engines, just code.
 
-Feel free to edit the story/lore bits to match the actual SCU backstory once you have it fleshed out! 🍟
 **[Play here!](https://SnackCinematicUniverse.github.io/Snackventure/)**
