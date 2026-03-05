@@ -5,17 +5,47 @@
   <title>Snackventure</title>
 
   <!--
-    ==============================
-    SNACKVENTURE - GAME TEMPLATE
-    ==============================
-    • Hand-drawn style platformer
-    • Character select: Nacho Man, Popcorn Man, Cheeto Man
-    • Villain changes based on character:
-        - Nacho Man  -> Evil Kurkure
-        - Popcorn Man-> The One Chip
-        - Cheeto Man -> Taki Man
-    • Multiple levels, simple physics, basic enemy AI
-    • Plenty of TODO comments where you can plug in your own sprites.
+    SNACKVENTURE v2
+    ----------------
+    READ THIS FIRST (SUPER SIMPLE TODO):
+
+    STEP 1: Make a folder next to this file called: assets
+
+    STEP 2: Put your images and music inside assets/.
+      You can start with these filenames (or change them later in the code):
+
+        assets/snackventure-logo.png
+        assets/nacho-idle.png
+        assets/nacho-run1.png
+        assets/nacho-run2.png
+        assets/nacho-jump.png
+
+        assets/popcorn-idle.png
+        assets/popcorn-run1.png
+        assets/popcorn-run2.png
+        assets/popcorn-jump.png
+
+        assets/cheeto-idle.png
+        assets/cheeto-run1.png
+        assets/cheeto-run2.png
+        assets/cheeto-jump.png
+
+        assets/boss-evil-kurkure.png
+        assets/boss-one-chip.png
+        assets/boss-taki-man.png
+
+        assets/tiles-ground.png
+        assets/tiles-platform.png
+        assets/spikes.png
+        assets/snack-collectible.png
+        assets/flag-goal.png
+
+        assets/music-main.mp3   <-- background soundtrack (any mp3)
+
+    STEP 3: If your file names are different,
+            ONLY change the paths inside ASSET_PATHS in the JS section.
+
+    STEP 4: Open index.html in your browser and play :)
   -->
 
   <style>
@@ -79,7 +109,7 @@
       background: #fefaf4;
     }
 
-    /* ============= MENU / UI ============= */
+    /* MENU / UI */
 
     #menu-screen,
     #overlay-screen {
@@ -115,6 +145,7 @@
           #f7ecdd 9px,
           #f7ecdd 10px
         );
+      overflow: hidden;
     }
 
     #logo-area span {
@@ -125,10 +156,15 @@
     }
 
     /*
-      TODO: Replace logo placeholder:
-      - You can remove the span and instead add:
-        <img src="assets/snackventure-logo.png" alt="Snackventure logo" style="max-width:100%;max-height:100%;" />
-      - Put your logo image into the assets/ folder.
+      TODO (LOGO):
+        Option A: keep text.
+        Option B: delete the <span> and add:
+
+        <img src="assets/snackventure-logo.png"
+             alt="Snackventure logo"
+             style="max-width:100%;max-height:100%;" />
+
+        Make sure that file exists in assets/.
     */
 
     #menu-title {
@@ -179,16 +215,31 @@
     }
 
     .sprite-placeholder {
-       <img src="assets/hero-nacho.png" alt="Nacho Man" style="max-width:100%;max-height:100%;" />
-       <img src="assets/hero-popcorn.png" alt="Popcorn Man" style="max-width:100%;max-height:100%;" />
-       <img src="assets/hero-cheeto.png" alt="Cheeto Man" style="max-width:100%;max-height:100%;" />
+      width: 96px;
+      height: 96px;
+      border-radius: 12px;
+      border: 2px dashed rgba(0, 0, 0, 0.4);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      padding: 4px;
+      background: #fff;
+      overflow: hidden;
     }
 
     /*
-      TODO: Replace character placeholders:
-      - Remove the text inside .sprite-placeholder and add <img> tags:
-        <img src="assets/nacho-idle.png" alt="Nacho Man" style="max-width:100%;max-height:100%;" />
-      - Do this for popcorn and cheeto sprites too.
+      TODO (CHARACTER PICTURES):
+        EITHER keep the text,
+        OR replace it with an <img>, for example:
+
+        <img src="assets/nacho-idle.png"
+             alt="Nacho Man"
+             style="max-width:100%;max-height:100%;" />
+
+        Do that inside each .sprite-placeholder.
     */
 
     .char-name {
@@ -249,7 +300,7 @@
       text-align: center;
     }
 
-    /* ============= HUD ============= */
+    /* HUD */
 
     #hud {
       position: absolute;
@@ -317,7 +368,7 @@
       left: 7px;
     }
 
-    /* ============= OVERLAY (PAUSE / WIN / GAME OVER) ============= */
+    /* OVERLAY */
 
     #overlay-card {
       width: 420px;
@@ -365,19 +416,17 @@
       box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
     }
 
-    /* ============= CANVAS ============= */
+    /* CANVAS */
 
     #game-canvas {
       display: block;
       position: absolute;
       inset: 0 0 0 0;
       margin: auto;
-      /* Hand-drawn edge */
-      image-rendering: pixelated;
       background: #b7e0ff;
+      image-rendering: pixelated;
     }
 
-    /* Simple pause hint */
     #pause-hint {
       position: absolute;
       right: 22px;
@@ -389,30 +438,31 @@
       border: 2px solid rgba(0, 0, 0, 0.4);
       z-index: 2;
     }
+
+    /* Hide raw audio controls if browser shows them */
+    audio {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div id="game-shell">
     <div id="game-inner-frame">
-      <!-- ===== MENU SCREEN (CHARACTER SELECT + LOGO PLACEHOLDER) ===== -->
+      <!-- MENU SCREEN -->
       <div id="menu-screen">
         <div id="logo-area">
-          <!--
-            TODO: Put your Snackventure logo sprite here.
-            Example:
-            <img src="assets/snackventure-logo.png" alt="Snackventure logo" style="max-width:100%;max-height:100%;" />
-          -->
-          <span>Drop your<br /><img src="assets/snackventure-logo.png" alt="Snackventure logo" style="max-width:100%;max-height:100%;" /></span>
+          <!-- See TODO in CSS comment if you want to replace this with your logo image. -->
+          <span>Drop your<br />Snackventure logo here</span>
         </div>
 
         <h1 id="menu-title">Snackventure</h1>
         <p id="menu-subtitle">A hand‑drawn snack hero platformer</p>
 
         <div id="character-grid">
-          <!-- Nacho Man card -->
+          <!-- Nacho Man -->
           <button class="char-card" data-char="nacho">
             <div class="sprite-placeholder">
-              Nacho Man sprite<br />goes here
+              Nacho Man image<br />goes here
             </div>
             <div class="char-name">Nacho Man</div>
             <div class="char-desc">
@@ -420,10 +470,10 @@
             </div>
           </button>
 
-          <!-- Popcorn Man card -->
+          <!-- Popcorn Man -->
           <button class="char-card" data-char="popcorn">
             <div class="sprite-placeholder">
-              Popcorn Man sprite<br />goes here
+              Popcorn Man image<br />goes here
             </div>
             <div class="char-name">Popcorn Man</div>
             <div class="char-desc">
@@ -431,10 +481,10 @@
             </div>
           </button>
 
-          <!-- Cheeto Man card -->
+          <!-- Cheeto Man -->
           <button class="char-card" data-char="cheeto">
             <div class="sprite-placeholder">
-              Cheeto Man sprite<br />goes here
+              Cheeto Man image<br />goes here
             </div>
             <div class="char-name">Cheeto Man</div>
             <div class="char-desc">
@@ -444,16 +494,16 @@
         </div>
 
         <div id="menu-bottom-row">
-          <span class="pill-label">Controls: ← → to move, Space / ↑ to jump, Esc to pause</span>
+          <span class="pill-label">Controls: ← → move • Space/↑ jump • Esc pause • R restart</span>
           <button id="start-button" disabled>Start Adventure</button>
         </div>
 
         <div id="hint-text">
-          Tip: Click a hero card to select your snack. Then hit Start Adventure!
+          1) Click a hero  2) Click Start  3) Snacks will be crunched.
         </div>
       </div>
 
-      <!-- ===== HUD ===== -->
+      <!-- HUD -->
       <div id="hud">
         <div id="hud-left">
           <div class="hud-tag">
@@ -483,7 +533,7 @@
 
       <div id="pause-hint">Esc = Pause • R = Restart level</div>
 
-      <!-- ===== OVERLAY SCREEN (PAUSE / WIN / GAME OVER) ===== -->
+      <!-- OVERLAY (PAUSE / GAME OVER / NEXT LEVEL / WIN) -->
       <div id="overlay-screen" class="hidden">
         <div id="overlay-card">
           <div id="overlay-title">Paused</div>
@@ -498,47 +548,49 @@
         </div>
       </div>
 
-      <!-- ===== MAIN GAME CANVAS ===== -->
+      <!-- MAIN CANVAS -->
       <canvas id="game-canvas" width="960" height="540"></canvas>
+
+      <!-- BACKGROUND MUSIC -->
+      <!--
+        TODO (MUSIC):
+          Put a music file in assets/, e.g. assets/music-main.mp3
+          If you don't have music yet, leave this as-is, it won't break.
+      -->
+      <audio id="bg-music" src="assets/music-main.mp3" loop></audio>
     </div>
   </div>
 
   <script>
     /*
-      =============================
-      SNACKVENTURE CORE GAME CODE
-      =============================
+      LEVEL LEGEND (WHAT EACH LETTER MEANS):
 
-      Quick overview of the level format:
-
-      - The world is made of a 2D grid of characters.
-      - Each character in the grid means:
-
-        "." = empty
-        "#" = solid ground/platform
-        "-" = thin floating platform (you can jump up through it)
-        "^" = spike (hurts player)
-        "C" = snack collectible (adds score)
-        "E" = small enemy
-        "S" = player start position
-        "G" = goal flag (end of level)
-        "B" = boss spawn (only in final level)
-
-      You can edit the levelLayouts array below to make more levels.
+        . = empty
+        # = solid ground
+        - = floating platform
+        ^ = spikes that hurt
+        C = snack collectible
+        e = walking enemy
+        f = flying enemy
+        H = heart powerup (heal +1)
+        P = power snack (temporary super buff)
+        S = player start
+        G = goal flag
+        B = boss spawn (final level)
     */
 
-    // ====== BASIC SETUP ======
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
     const WIDTH = canvas.width;
     const HEIGHT = canvas.height;
     const TILE_SIZE = 48;
 
+    const bgMusic = document.getElementById("bg-music");
+
     let lastTime = 0;
-    let gameState = "menu"; // "menu" | "playing" | "paused" | "level-complete" | "game-over" | "boss-defeated"
+    let gameState = "menu"; // "menu" | "playing" | "paused" | "game-over" | "level-complete" | "boss-defeated"
     let keys = {};
 
-    // DOM references
     const menuScreen = document.getElementById("menu-screen");
     const overlayScreen = document.getElementById("overlay-screen");
     const overlayTitle = document.getElementById("overlay-title");
@@ -555,91 +607,55 @@
     const hudHealthHearts = document.getElementById("hud-health-hearts");
     const hudScore = document.getElementById("hud-score");
 
-    // ====== CHARACTER / VILLAIN CONFIG ======
-
     const HERO_CONFIG = {
-      nacho: {
-        displayName: "Nacho Man",
-        // Slightly higher jump, medium speed
-        moveSpeed: 6.0,
-        jumpStrength: 15.5,
-        color: "#ffb347"
-      },
-      popcorn: {
-        displayName: "Popcorn Man",
-        // Slower move, floatier jump
-        moveSpeed: 5.0,
-        jumpStrength: 16.5,
-        color: "#fff7b2"
-      },
-      cheeto: {
-        displayName: "Cheeto Man",
-        // Faster move, regular jump
-        moveSpeed: 7.2,
-        jumpStrength: 15.0,
-        color: "#ff9a3c"
-      }
+      nacho: { displayName: "Nacho Man", moveSpeed: 6.0, jumpStrength: 15.5, color: "#ffb347" },
+      popcorn: { displayName: "Popcorn Man", moveSpeed: 5.0, jumpStrength: 16.5, color: "#fff7b2" },
+      cheeto: { displayName: "Cheeto Man", moveSpeed: 7.2, jumpStrength: 15.0, color: "#ff9a3c" }
     };
 
     const VILLAIN_CONFIG = {
-      nacho: {
-        id: "evilKurkure",
-        displayName: "Evil Kurkure"
-      },
-      popcorn: {
-        id: "oneChip",
-        displayName: "The One Chip"
-      },
-      cheeto: {
-        id: "takiMan",
-        displayName: "Taki Man"
-      }
+      nacho: { id: "evilKurkure", displayName: "Evil Kurkure" },
+      popcorn: { id: "oneChip", displayName: "The One Chip" },
+      cheeto: { id: "takiMan", displayName: "Taki Man" }
     };
 
-    /*
-      TODO: ASSET PATHS
-      ------------------
-      Change these paths to where you put your art.
-
-      Example file structure:
-        snackventure.html
-        assets/
-          snackventure-logo.png
-          tiles-ground.png
-          tiles-platform.png
-          spikes.png
-          snack-collectible.png
-          flag-goal.png
-          bg-layer1.png
-          hero-nacho.png
-          hero-popcorn.png
-          hero-cheeto.png
-          boss-evil-kurkure.png
-          boss-one-chip.png
-          boss-taki-man.png
-    */
+    // === ASSET PATHS (ONLY EDIT HERE IF YOUR FILENAMES ARE DIFFERENT) ===
     const ASSET_PATHS = {
-      background: "assets/bg-layer1.png", // TODO
-      tiles: {
-        ground: "assets/tiles-ground.png", // TODO
-        platform: "assets/tiles-platform.png", // TODO
-        spike: "assets/spikes.png", // TODO
-        collectible: "assets/snack-collectible.png", // TODO
-        goal: "assets/flag-goal.png" // TODO
-      },
       heroes: {
-        nacho: "assets/hero-nacho.png", // TODO
-        popcorn: "assets/hero-popcorn.png", // TODO
-        cheeto: "assets/hero-cheeto.png" // TODO
+        nacho: {
+          idle: "assets/nacho-idle.png",
+          run1: "assets/nacho-run1.png",
+          run2: "assets/nacho-run2.png",
+          jump: "assets/nacho-jump.png"
+        },
+        popcorn: {
+          idle: "assets/popcorn-idle.png",
+          run1: "assets/popcorn-run1.png",
+          run2: "assets/popcorn-run2.png",
+          jump: "assets/popcorn-jump.png"
+        },
+        cheeto: {
+          idle: "assets/cheeto-idle.png",
+          run1: "assets/cheeto-run1.png",
+          run2: "assets/cheeto-run2.png",
+          jump: "assets/cheeto-jump.png"
+        }
       },
       bosses: {
-        evilKurkure: "assets/boss-evil-kurkure.png", // TODO
-        oneChip: "assets/boss-one-chip.png", // TODO
-        takiMan: "assets/boss-taki-man.png" // TODO
-      }
+        evilKurkure: "assets/boss-evil-kurkure.png",
+        oneChip: "assets/boss-one-chip.png",
+        takiMan: "assets/boss-taki-man.png"
+      },
+      tiles: {
+        ground: "assets/tiles-ground.png",
+        platform: "assets/tiles-platform.png",
+        spike: "assets/spikes.png",
+        collectible: "assets/snack-collectible.png",
+        goal: "assets/flag-goal.png"
+      },
+      background: "assets/bg-layer1.png" // optional, can be any sky/hills image
     };
 
-    // Simple image loader
     function loadImage(path) {
       const img = new Image();
       img.src = path;
@@ -647,7 +663,31 @@
     }
 
     const IMAGES = {
-      background: loadImage(ASSET_PATHS.background),
+      heroes: {
+        nacho: {
+          idle: loadImage(ASSET_PATHS.heroes.nacho.idle),
+          run1: loadImage(ASSET_PATHS.heroes.nacho.run1),
+          run2: loadImage(ASSET_PATHS.heroes.nacho.run2),
+          jump: loadImage(ASSET_PATHS.heroes.nacho.jump)
+        },
+        popcorn: {
+          idle: loadImage(ASSET_PATHS.heroes.popcorn.idle),
+          run1: loadImage(ASSET_PATHS.heroes.popcorn.run1),
+          run2: loadImage(ASSET_PATHS.heroes.popcorn.run2),
+          jump: loadImage(ASSET_PATHS.heroes.popcorn.jump)
+        },
+        cheeto: {
+          idle: loadImage(ASSET_PATHS.heroes.cheeto.idle),
+          run1: loadImage(ASSET_PATHS.heroes.cheeto.run1),
+          run2: loadImage(ASSET_PATHS.heroes.cheeto.run2),
+          jump: loadImage(ASSET_PATHS.heroes.cheeto.jump)
+        }
+      },
+      bosses: {
+        evilKurkure: loadImage(ASSET_PATHS.bosses.evilKurkure),
+        oneChip: loadImage(ASSET_PATHS.bosses.oneChip),
+        takiMan: loadImage(ASSET_PATHS.bosses.takiMan)
+      },
       tiles: {
         ground: loadImage(ASSET_PATHS.tiles.ground),
         platform: loadImage(ASSET_PATHS.tiles.platform),
@@ -655,45 +695,20 @@
         collectible: loadImage(ASSET_PATHS.tiles.collectible),
         goal: loadImage(ASSET_PATHS.tiles.goal)
       },
-      heroes: {
-        nacho: loadImage(ASSET_PATHS.heroes.nacho),
-        popcorn: loadImage(ASSET_PATHS.heroes.popcorn),
-        cheeto: loadImage(ASSET_PATHS.heroes.cheeto)
-      },
-      bosses: {
-        evilKurkure: loadImage(ASSET_PATHS.bosses.evilKurkure),
-        oneChip: loadImage(ASSET_PATHS.bosses.oneChip),
-        takiMan: loadImage(ASSET_PATHS.bosses.takiMan)
-      }
+      background: loadImage(ASSET_PATHS.background)
     };
 
-    // ====== LEVEL DATA ======
-
-    /*
-      You can edit these level layouts or add more.
-      Try to keep all rows the same length.
-
-      Use:
-        - "." empty
-        - "#" solid ground
-        - "-" floating platform
-        - "^" spikes
-        - "C" snack collectible
-        - "E" enemy
-        - "S" player start
-        - "G" goal
-        - "B" boss (final level only)
-    */
+    // === LEVELS (you can change these later if you want) ===
     const levelLayouts = [
       {
-        name: "1 - Crunchy Introduction",
+        name: "1 - Crunchy Plains",
         rows: [
           "....................",
           "....................",
           "....................",
           "..........C.........",
           "....................",
-          "......C.......E.....",
+          "......C.....e.......",
           "....................",
           "S#####.......#####G.",
           "####################",
@@ -706,10 +721,10 @@
         rows: [
           "....................",
           "....................",
-          "..C.................",
+          "....C............C..",
           ".....---............",
           "....................",
-          "....C......E....C...",
+          "....C......e....C...",
           "..........#####.....",
           "S#####...........G..",
           "####################",
@@ -723,7 +738,7 @@
           "....................",
           "....................",
           "......C.............",
-          "..........E.........",
+          "..........e.........",
           ".....^^^............",
           ".............C......",
           ".....######.........",
@@ -734,14 +749,46 @@
         ]
       },
       {
-        name: "4 - Snack Mine",
+        name: "4 - Flying Snack Attack",
+        rows: [
+          "....................",
+          "....................",
+          "..f............f....",
+          "....................",
+          "......C.............",
+          "............C.......",
+          ".......---..........",
+          "S#####.......#####G.",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "5 - Health & Powerups",
+        rows: [
+          "....................",
+          "....................",
+          ".....H..............",
+          "..........P.........",
+          "....................",
+          "....e...........C...",
+          "..........---.......",
+          "S#####.......#####G.",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "6 - Snack Mine",
         rows: [
           "....................",
           "....................",
           "...C..........C.....",
-          "....................",
+          "........e...........",
           ".....---......---...",
-          "........E..........C",
+          "........e..........C",
           "....................",
           "S#####......#####.G.",
           "####################",
@@ -750,7 +797,39 @@
         ]
       },
       {
-        name: "5 - Final Crunch (Boss)",
+        name: "7 - Lava Crunch",
+        rows: [
+          "....................",
+          "....................",
+          "......C.............",
+          ".....^^^....e.......",
+          "....................",
+          "....C......^^^......",
+          "..........-----.....",
+          "S#####..........G...",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "8 - Sky Snackway",
+        rows: [
+          "....................",
+          "...........f........",
+          "....................",
+          ".....---.....---....",
+          "....................",
+          "....C....H.....C....",
+          "....................",
+          "S#####...........G..",
+          "####################",
+          "####################",
+          "####################"
+        ]
+      },
+      {
+        name: "9 - Final Crunch (Boss)",
         rows: [
           "....................",
           "....................",
@@ -767,15 +846,13 @@
       }
     ];
 
-    // ====== LEVEL / WORLD STRUCTURES ======
-
     class Tile {
       constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.w = TILE_SIZE;
         this.h = TILE_SIZE;
-        this.type = type; // "ground" | "platform" | "spike"
+        this.type = type;
       }
     }
 
@@ -789,18 +866,31 @@
       }
     }
 
+    class Powerup {
+      constructor(x, y, kind) {
+        this.x = x;
+        this.y = y;
+        this.w = TILE_SIZE * 0.7;
+        this.h = TILE_SIZE * 0.7;
+        this.kind = kind; // "heart" | "buff"
+        this.taken = false;
+      }
+    }
+
     class Enemy {
-      constructor(x, y) {
+      constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.w = TILE_SIZE * 0.8;
         this.h = TILE_SIZE * 0.8;
-        this.vx = 2.2 * (Math.random() < 0.5 ? -1 : 1);
+        this.type = type; // "walker" | "flyer"
+        this.vx = type === "walker" ? 2.2 * (Math.random() < 0.5 ? -1 : 1) : 2.0;
         this.vy = 0;
+        this.baseY = y;
         this.onGround = false;
         this.patrolRange = 3 * TILE_SIZE;
         this.baseX = x;
-        this.speed = 2.2;
+        this.speed = this.vx;
         this.alive = true;
         this.animTime = 0;
       }
@@ -814,7 +904,7 @@
         this.h = TILE_SIZE * 2;
         this.vx = 2.5;
         this.vy = 0;
-        this.id = id; // "evilKurkure" | "oneChip" | "takiMan"
+        this.id = id;
         this.health = 6;
         this.maxHealth = 6;
         this.onGround = false;
@@ -842,11 +932,13 @@
         this.score = 0;
         this.facing = 1;
         this.animTime = 0;
-        this.state = "idle"; // "idle" | "run" | "jump" | "hurt"
+        this.state = "idle";
         this.invincibleTime = 0;
+        this.buffTime = 0; // power snack buff
       }
     }
 
+    const GRAVITY = 52;
     let currentLevelIndex = 0;
     let world = null;
     let player = null;
@@ -855,14 +947,16 @@
     let selectedVillainInfo = null;
     let cameraX = 0;
 
-    function buildLevel(levelIndex) {
-      const layout = levelLayouts[levelIndex];
+    function buildLevel(index) {
+      const layout = levelLayouts[index];
       const rows = layout.rows;
+
       const tiles = [];
       const platforms = [];
       const spikes = [];
       const collectibles = [];
       const enemies = [];
+      const powerups = [];
       let startX = 0;
       let startY = 0;
       let goal = { x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE };
@@ -886,12 +980,19 @@
               spikes.push(new Tile(x, y, "spike"));
               break;
             case "C":
-              collectibles.push(
-                new Collectible(x + TILE_SIZE * 0.2, y + TILE_SIZE * 0.2)
-              );
+              collectibles.push(new Collectible(x + TILE_SIZE * 0.2, y + TILE_SIZE * 0.2));
               break;
-            case "E":
-              enemies.push(new Enemy(x + TILE_SIZE * 0.1, y + TILE_SIZE * 0.2));
+            case "e":
+              enemies.push(new Enemy(x + TILE_SIZE * 0.1, y + TILE_SIZE * 0.2, "walker"));
+              break;
+            case "f":
+              enemies.push(new Enemy(x + TILE_SIZE * 0.1, y + TILE_SIZE * 0.2, "flyer"));
+              break;
+            case "H":
+              powerups.push(new Powerup(x + TILE_SIZE * 0.15, y + TILE_SIZE * 0.15, "heart"));
+              break;
+            case "P":
+              powerups.push(new Powerup(x + TILE_SIZE * 0.15, y + TILE_SIZE * 0.15, "buff"));
               break;
             case "S":
               startX = x + TILE_SIZE * 0.2;
@@ -916,6 +1017,7 @@
         spikes,
         collectibles,
         enemies,
+        powerups,
         goal,
         bossSpawn,
         width: levelWidth,
@@ -924,7 +1026,7 @@
       };
 
       boss = null;
-      if (levelIndex === levelLayouts.length - 1 && bossSpawn && selectedVillainInfo) {
+      if (index === levelLayouts.length - 1 && bossSpawn && selectedVillainInfo) {
         boss = new Boss(bossSpawn.x, bossSpawn.y, selectedVillainInfo.id);
       }
 
@@ -939,7 +1041,7 @@
       player = new Player(0, 0, heroKey);
     }
 
-    // ====== INPUT HANDLING ======
+    // INPUT
     window.addEventListener("keydown", (e) => {
       keys[e.key] = true;
 
@@ -959,7 +1061,6 @@
       keys[e.key] = false;
     });
 
-    // ====== COLLISION HELPERS ======
     function aabb(a, b) {
       return (
         a.x < b.x + b.w &&
@@ -973,9 +1074,6 @@
       return Math.max(min, Math.min(max, v));
     }
 
-    // ====== PHYSICS & UPDATE ======
-    const GRAVITY = 52; // pixels/s^2 (scaled by dt)
-
     function updatePlayer(dt) {
       if (!player || !world) return;
 
@@ -983,7 +1081,6 @@
       const RIGHT = keys["ArrowRight"] || keys["d"] || keys["D"];
       const JUMP = keys["ArrowUp"] || keys["w"] || keys["W"] || keys[" "];
 
-      // Horizontal
       let targetVx = 0;
       if (LEFT) targetVx -= player.moveSpeed;
       if (RIGHT) targetVx += player.moveSpeed;
@@ -993,16 +1090,22 @@
         player.facing = player.vx > 0 ? 1 : -1;
       }
 
-      // Jump
+      if (player.buffTime > 0) {
+        player.buffTime -= dt;
+        player.moveSpeed = HERO_CONFIG[player.heroKey].moveSpeed * 1.3;
+        player.jumpStrength = HERO_CONFIG[player.heroKey].jumpStrength * 1.2;
+      } else {
+        player.moveSpeed = HERO_CONFIG[player.heroKey].moveSpeed;
+        player.jumpStrength = HERO_CONFIG[player.heroKey].jumpStrength;
+      }
+
       if (JUMP && player.onGround) {
         player.vy = -player.jumpStrength;
         player.onGround = false;
       }
 
-      // Gravity
       player.vy += GRAVITY * dt;
 
-      // Apply velocities
       player.x += player.vx;
       resolveCollisions(player, world.tiles, world.platforms, "x");
 
@@ -1010,14 +1113,12 @@
       player.onGround = false;
       resolveCollisions(player, world.tiles, world.platforms, "y");
 
-      // Check spikes
       world.spikes.forEach((spike) => {
         if (aabb(player, spike)) {
           damagePlayer(1);
         }
       });
 
-      // Collectibles
       world.collectibles.forEach((c) => {
         if (!c.collected && aabb(player, c)) {
           c.collected = true;
@@ -1025,11 +1126,20 @@
         }
       });
 
-      // Enemies
+      world.powerups.forEach((p) => {
+        if (!p.taken && aabb(player, p)) {
+          p.taken = true;
+          if (p.kind === "heart") {
+            if (player.health < player.maxHealth) player.health += 1;
+          } else if (p.kind === "buff") {
+            player.buffTime = 6; // seconds of buff
+          }
+        }
+      });
+
       world.enemies.forEach((enemy) => {
         if (!enemy.alive) return;
         if (aabb(player, enemy)) {
-          // If player is falling onto enemy -> stomp
           if (player.vy > 0 && player.y + player.h - 10 < enemy.y) {
             enemy.alive = false;
             player.vy = -player.jumpStrength * 0.8;
@@ -1040,9 +1150,7 @@
         }
       });
 
-      // Boss
       if (boss && boss.health > 0 && aabb(player, boss)) {
-        // Stomp top of boss
         if (player.vy > 0 && player.y + player.h - 10 < boss.y) {
           boss.health -= 1;
           player.vy = -player.jumpStrength * 0.9;
@@ -1054,17 +1162,14 @@
         }
       }
 
-      // Goal
       if (aabb(player, world.goal)) {
         levelComplete();
       }
 
-      // Bounds / fall off map
       if (player.y > world.height + 200) {
-        damagePlayer(player.maxHealth); // insta-death
+        damagePlayer(player.maxHealth);
       }
 
-      // Update animation state
       player.animTime += dt;
       if (player.invincibleTime > 0) {
         player.invincibleTime -= dt;
@@ -1078,17 +1183,11 @@
         player.state = "idle";
       }
 
-      // Camera
       const centerX = player.x + player.w / 2;
-      cameraX = clamp(
-        centerX - WIDTH / 2,
-        0,
-        Math.max(0, world.width - WIDTH)
-      );
+      cameraX = clamp(centerX - WIDTH / 2, 0, Math.max(0, world.width - WIDTH));
     }
 
     function resolveCollisions(entity, solidTiles, platforms, axis) {
-      // Solid ground / walls
       for (const tile of solidTiles) {
         if (!aabb(entity, tile)) continue;
         if (axis === "x") {
@@ -1110,7 +1209,6 @@
         }
       }
 
-      // One-way platforms (only when falling down)
       if (axis === "y" && entity.vy >= 0) {
         for (const p of platforms) {
           const epsilon = 4;
@@ -1146,25 +1244,30 @@
 
     function updateEnemies(dt) {
       if (!world) return;
+
       world.enemies.forEach((enemy) => {
         if (!enemy.alive) return;
-
         enemy.animTime += dt;
 
-        // Simple side-to-side patrol
-        enemy.vy += GRAVITY * dt;
-        enemy.x += enemy.vx;
-        enemy.y += enemy.vy;
-        enemy.onGround = false;
-
-        // Collide with ground
-        resolveCollisions(enemy, world.tiles, [], "x");
-        resolveCollisions(enemy, world.tiles, [], "y");
-
-        // Patrol flip when too far from base
-        const distFromBase = Math.abs(enemy.x - enemy.baseX);
-        if (distFromBase > enemy.patrolRange) {
-          enemy.vx *= -1;
+        if (enemy.type === "walker") {
+          enemy.vy += GRAVITY * dt;
+          enemy.x += enemy.vx;
+          enemy.y += enemy.vy;
+          enemy.onGround = false;
+          resolveCollisions(enemy, world.tiles, [], "x");
+          resolveCollisions(enemy, world.tiles, [], "y");
+          const distFromBase = Math.abs(enemy.x - enemy.baseX);
+          if (distFromBase > enemy.patrolRange) {
+            enemy.vx *= -1;
+          }
+        } else if (enemy.type === "flyer") {
+          enemy.x += enemy.vx;
+          enemy.y = enemy.baseY + Math.sin(enemy.animTime * 3) * 18;
+          const leftLimit = enemy.baseX - 2 * TILE_SIZE;
+          const rightLimit = enemy.baseX + 2 * TILE_SIZE;
+          if (enemy.x < leftLimit || enemy.x > rightLimit) {
+            enemy.vx *= -1;
+          }
         }
       });
     }
@@ -1175,14 +1278,12 @@
       boss.animTime += dt;
       boss.vy += GRAVITY * dt;
 
-      // Simple pattern: walk left/right and sometimes jump
       boss.x += boss.vx * boss.dir;
       boss.y += boss.vy;
 
       resolveCollisions(boss, world.tiles, [], "x");
       resolveCollisions(boss, world.tiles, [], "y");
 
-      // Flip direction when hitting walls
       if (boss.x < 0) {
         boss.x = 0;
         boss.dir = 1;
@@ -1191,14 +1292,12 @@
         boss.dir = -1;
       }
 
-      // Occasional jump based on phase
       const jumpChance = boss.phase === 1 ? 0.002 : 0.004;
       if (Math.random() < jumpChance && boss.onGround) {
         boss.vy = -22;
         boss.onGround = false;
       }
 
-      // Increase aggression when low health
       if (boss.health <= boss.maxHealth / 2 && boss.phase === 1) {
         boss.phase = 2;
         boss.vx *= 1.3;
@@ -1213,26 +1312,32 @@
       updateHUD();
     }
 
-    // ====== RENDERING ======
     function drawBackground() {
-      // Soft sky
       ctx.fillStyle = "#b7e0ff";
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      // Parallax hills / doodles
       ctx.save();
       ctx.translate(-cameraX * 0.3, 0);
 
-      const hillColor = "#9fd7ff";
-      ctx.fillStyle = hillColor;
-      for (let i = -1; i < 10; i++) {
-        const hx = i * 260;
-        const hy = HEIGHT - 180;
-        ctx.beginPath();
-        ctx.moveTo(hx, HEIGHT);
-        ctx.quadraticCurveTo(hx + 130, hy - 80, hx + 260, HEIGHT);
-        ctx.closePath();
-        ctx.fill();
+      if (IMAGES.background && IMAGES.background.complete) {
+        const img = IMAGES.background;
+        const patternWidth = img.width;
+        const times = Math.ceil(WIDTH / patternWidth) + 2;
+        for (let i = -1; i < times; i++) {
+          ctx.drawImage(img, i * patternWidth, HEIGHT - img.height);
+        }
+      } else {
+        const hillColor = "#9fd7ff";
+        ctx.fillStyle = hillColor;
+        for (let i = -1; i < 10; i++) {
+          const hx = i * 260;
+          const hy = HEIGHT - 180;
+          ctx.beginPath();
+          ctx.moveTo(hx, HEIGHT);
+          ctx.quadraticCurveTo(hx + 130, hy - 80, hx + 260, HEIGHT);
+          ctx.closePath();
+          ctx.fill();
+        }
       }
 
       ctx.restore();
@@ -1241,13 +1346,13 @@
     function drawTiles() {
       if (!world) return;
 
-      const tiles = [
+      const tilesAll = [
         ...world.tiles.map((t) => ({ ...t, type: "ground" })),
         ...world.platforms.map((p) => ({ ...p, type: "platform" })),
         ...world.spikes.map((s) => ({ ...s, type: "spike" }))
       ];
 
-      for (const tile of tiles) {
+      for (const tile of tilesAll) {
         const screenX = tile.x - cameraX;
         const screenY = tile.y;
         if (screenX + tile.w < 0 || screenX > WIDTH) continue;
@@ -1259,7 +1364,6 @@
           if (IMAGES.tiles.ground && IMAGES.tiles.ground.complete) {
             ctx.drawImage(IMAGES.tiles.ground, 0, 0, tile.w, tile.h);
           } else {
-            // Hand-drawn style fallback
             ctx.fillStyle = "#f9c784";
             ctx.fillRect(0, 0, tile.w, tile.h);
             ctx.strokeStyle = "#543b2f";
@@ -1298,7 +1402,6 @@
         ctx.restore();
       }
 
-      // Goal
       const g = world.goal;
       const gx = g.x - cameraX;
       if (gx + g.w >= 0 && gx <= WIDTH) {
@@ -1335,13 +1438,7 @@
         ctx.translate(0, bob);
 
         if (IMAGES.tiles.collectible && IMAGES.tiles.collectible.complete) {
-          ctx.drawImage(
-            IMAGES.tiles.collectible,
-            -c.w / 2,
-            -c.h / 2,
-            c.w,
-            c.h
-          );
+          ctx.drawImage(IMAGES.tiles.collectible, -c.w / 2, -c.h / 2, c.w, c.h);
         } else {
           ctx.fillStyle = "#ffe066";
           ctx.beginPath();
@@ -1350,6 +1447,48 @@
           ctx.strokeStyle = "#c49a00";
           ctx.lineWidth = 3;
           ctx.stroke();
+        }
+
+        ctx.restore();
+      });
+    }
+
+    function drawPowerups() {
+      if (!world) return;
+      world.powerups.forEach((p) => {
+        if (p.taken) return;
+        const sx = p.x - cameraX;
+        const sy = p.y;
+        if (sx + p.w < 0 || sx > WIDTH) return;
+
+        ctx.save();
+        ctx.translate(sx + p.w / 2, sy + p.h / 2);
+        const bob = Math.sin(performance.now() / 350 + sx * 0.015) * 4;
+        ctx.translate(0, bob);
+
+        if (p.kind === "heart") {
+          ctx.fillStyle = "#ff4b5c";
+          ctx.beginPath();
+          ctx.moveTo(0, 8);
+          ctx.bezierCurveTo(-12, -6, -8, -14, 0, -6);
+          ctx.bezierCurveTo(8, -14, 12, -6, 0, 8);
+          ctx.fill();
+          ctx.strokeStyle = "#931824";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = "#ffe066";
+          ctx.beginPath();
+          ctx.arc(0, 0, p.w / 2.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#c49a00";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.fillStyle = "#2b2620";
+          ctx.font = "bold 14px system-ui";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("P", 0, 0);
         }
 
         ctx.restore();
@@ -1367,13 +1506,12 @@
         ctx.save();
         ctx.translate(sx, sy);
 
-        // Simple squishy animation
         const squish = 1 + Math.sin(enemy.animTime * 6) * 0.08;
         ctx.translate(enemy.w / 2, enemy.h / 2);
         ctx.scale(1, squish);
         ctx.translate(-enemy.w / 2, -enemy.h / 2);
 
-        ctx.fillStyle = "#ff8b94";
+        ctx.fillStyle = enemy.type === "flyer" ? "#8be9fd" : "#ff8b94";
         ctx.strokeStyle = "#2b2620";
         ctx.lineWidth = 3;
         ctx.beginPath();
@@ -1381,7 +1519,6 @@
         ctx.fill();
         ctx.stroke();
 
-        // Eyes
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
         ctx.arc(enemy.w * 0.35, enemy.h * 0.35, 4, 0, Math.PI * 2);
@@ -1406,7 +1543,6 @@
       ctx.save();
       ctx.translate(sx, sy);
 
-      // Slight bobbing
       const bob = Math.sin(boss.animTime * 2) * 4;
       ctx.translate(0, bob);
 
@@ -1414,7 +1550,6 @@
       if (img && img.complete) {
         ctx.drawImage(img, 0, 0, boss.w, boss.h);
       } else {
-        // Fallback big doodle
         ctx.fillStyle = "#d88cff";
         ctx.strokeStyle = "#2b2620";
         ctx.lineWidth = 4;
@@ -1446,7 +1581,6 @@
         ctx.stroke();
       }
 
-      // Boss health bar
       const barW = boss.w;
       const barH = 10;
       const hpRatio = boss.health / boss.maxHealth;
@@ -1473,7 +1607,6 @@
       ctx.save();
       ctx.translate(sx + player.w / 2, sy + player.h / 2);
 
-      // Simple bobbing animation
       const bob =
         player.state === "idle"
           ? Math.sin(player.animTime * 4) * 2
@@ -1482,31 +1615,40 @@
           : 0;
       ctx.translate(0, bob);
 
-      // Small squash when landing
       let scaleY = 1;
       if (player.state === "run") {
         scaleY = 1 + Math.sin(player.animTime * 20) * 0.05;
       }
       ctx.scale(player.facing, scaleY);
 
-      const heroImg = IMAGES.heroes[player.heroKey];
+      const heroSprites = IMAGES.heroes[player.heroKey];
+
+      let imgToDraw = null;
+      if (heroSprites) {
+        if (player.state === "jump") {
+          imgToDraw = heroSprites.jump;
+        } else if (player.state === "run") {
+          const runPhase = Math.floor(player.animTime * 12) % 2;
+          imgToDraw = runPhase === 0 ? heroSprites.run1 : heroSprites.run2;
+        } else {
+          imgToDraw = heroSprites.idle;
+        }
+      }
 
       const flicker =
         player.invincibleTime > 0 &&
         (Math.floor(player.invincibleTime * 10) % 2 === 0);
 
       if (!flicker) {
-        if (heroImg && heroImg.complete) {
-          // Draw your hero sprite
+        if (imgToDraw && imgToDraw.complete) {
           ctx.drawImage(
-            heroImg,
+            imgToDraw,
             -player.w / 2,
             -player.h / 2,
             player.w,
             player.h
           );
         } else {
-          // Fallback doodle character
           ctx.fillStyle = player.color;
           ctx.strokeStyle = "#2b2620";
           ctx.lineWidth = 3;
@@ -1521,7 +1663,6 @@
           ctx.fill();
           ctx.stroke();
 
-          // Eyes
           ctx.fillStyle = "#fff";
           ctx.beginPath();
           ctx.arc(-player.w * 0.1, -player.h * 0.1, 4, 0, Math.PI * 2);
@@ -1542,6 +1683,7 @@
       drawBackground();
       drawTiles();
       drawCollectibles();
+      drawPowerups();
       drawEnemies();
       drawBoss();
       drawPlayer();
@@ -1552,7 +1694,6 @@
       drawWorld();
     }
 
-    // ====== HUD & STATES ======
     function updateHUD() {
       if (!player || !world) return;
 
@@ -1563,7 +1704,6 @@
       hudLevel.textContent = world.name;
       hudScore.textContent = player.score;
 
-      // Hearts
       hudHealthHearts.innerHTML = "";
       for (let i = 0; i < player.maxHealth; i++) {
         const heart = document.createElement("span");
@@ -1584,10 +1724,14 @@
         overlayTitle.textContent = "Paused";
         overlayText.textContent =
           "Stretch your fingers, snack hero. Press Esc again to dive back in!";
+        if (!bgMusic.paused) {
+          bgMusic.pause();
+        }
       } else {
         if (gameState !== "paused") return;
         gameState = "playing";
         overlayScreen.classList.add("hidden");
+        bgMusic.play().catch(() => {});
       }
     }
 
@@ -1596,11 +1740,11 @@
       overlayScreen.classList.remove("hidden");
       overlayTitle.textContent = "Game Over";
       overlayText.textContent =
-        "Your snack hero got crunched! Want to retry this level or head back to the menu?";
+        "Your snack hero got crunched! Retry the level or head back to the menu.";
+      if (!bgMusic.paused) bgMusic.pause();
     }
 
     function levelComplete() {
-      // If boss level and boss still alive, don't finish yet
       if (boss && boss.health > 0) return;
 
       if (currentLevelIndex < levelLayouts.length - 1) {
@@ -1622,6 +1766,7 @@
         "You defeated " +
         (selectedVillainInfo ? selectedVillainInfo.displayName : "the boss") +
         " and restored snack peace!";
+      if (!bgMusic.paused) bgMusic.pause();
     }
 
     function restartLevel() {
@@ -1630,6 +1775,7 @@
       buildLevel(currentLevelIndex);
       gameState = "playing";
       overlayScreen.classList.add("hidden");
+      bgMusic.play().catch(() => {});
     }
 
     function goToNextLevel() {
@@ -1655,9 +1801,10 @@
       hudHealthHearts.innerHTML = "";
       startButton.disabled = true;
       charCards.forEach((c) => c.classList.remove("selected"));
+      if (!bgMusic.paused) bgMusic.pause();
+      bgMusic.currentTime = 0;
     }
 
-    // ====== CHARACTER SELECT LOGIC ======
     charCards.forEach((card) => {
       card.addEventListener("click", () => {
         charCards.forEach((c) => c.classList.remove("selected"));
@@ -1676,9 +1823,12 @@
       buildLevel(currentLevelIndex);
       updateHUD();
       gameState = "playing";
+
+      // Start music after user click (works better with browser autoplay rules)
+      bgMusic.volume = 0.6;
+      bgMusic.play().catch(() => {});
     });
 
-    // Overlay buttons
     btnResume.addEventListener("click", () => {
       if (gameState === "paused") {
         setPause(false);
@@ -1689,7 +1839,6 @@
         overlayScreen.classList.add("hidden");
         restartLevel();
       } else if (gameState === "boss-defeated") {
-        // After victory, go to menu
         backToMenu();
       }
     });
@@ -1702,7 +1851,6 @@
       backToMenu();
     });
 
-    // ====== GAME LOOP ======
     function loop(timestamp) {
       const dt = (timestamp - lastTime) / 1000;
       lastTime = timestamp;
@@ -1717,4 +1865,3 @@
   </script>
 </body>
 </html>
-
