@@ -643,14 +643,13 @@
   </style>
 </head>
 <body>
-  <div id="game-shell">
-    <div id="game-inner-frame">
-      <!-- INTRO: JMAD PRODUCTIONS -->
-      <div id="intro-screen">
-        <div id="intro-logo">JMAD PRODUCTIONS</div>
-        <div id="intro-sub">Presents: Snackventure – The Snack Cinematic Universe Game</div>
-        <button id="intro-tap">Tap / Click to Continue</button>
-      </div>
+<!-- INTRO: JMAD PRODUCTIONS -->
+<div id="intro-screen" onclick="startIntro()">
+  <div id="intro-logo">JMAD PRODUCTIONS</div>
+  <div id="intro-sub">Presents: Snackventure – The Snack Cinematic Universe Game</div>
+  <button id="intro-tap" onclick="startIntro()">Tap / Click to Continue</button>
+</div>
+
 
       <!-- MAIN MENU -->
       <div id="menu-screen" class="screen-overlay hidden">
@@ -2008,13 +2007,14 @@
       });
     });
 
-    introTap.addEventListener("pointerdown", () => {
-      introScreen.classList.add("hidden");
-      menuScreen.classList.remove("hidden");
-      gameState = "menu";
-      updateWalletLabels();
-      refreshHeroLocks();
-    });
+function startIntro() {
+  introScreen.classList.add("hidden");
+  menuScreen.classList.remove("hidden");
+  gameState = "menu";
+  updateWalletLabels();
+  refreshHeroLocks();
+}
+
 
     shopButton.addEventListener("click", () => {
       menuScreen.classList.add("hidden");
