@@ -155,6 +155,8 @@
     }
 
     #intro-tap {
+      position: relative;
+      z-index: 11;
       margin-top: 22px;
       font-size: 13px;
       padding: 6px 14px;
@@ -561,15 +563,17 @@
 
     /* CANVAS */
 
-    #game-canvas {
-      display: block;
-      position: absolute;
-      inset: 0 0 0 0;
-      margin: auto;
-      background: #b7e0ff;
-      image-rendering: pixelated;
-      touch-action: none;
-    }
+#game-canvas {
+  display: block;
+  position: absolute;
+  inset: 0 0 0 0;
+  margin: auto;
+  background: #b7e0ff;
+  image-rendering: pixelated;
+  touch-action: none;
+  z-index: 0;
+}
+
 
     #pause-hint {
       position: absolute;
