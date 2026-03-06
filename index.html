@@ -1,3129 +1,701 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snackventure</title>
-
-  <!--
-    ULTRA-EASY TODO (BABY MODE) 😎
-
-    STEP 1 – FILES:
-      • Save THIS file as: index.html
-
-    STEP 2 – FOLDER:
-      • In the same place as index.html, make a folder named: assets
-
-    STEP 3 – OPTIONAL ART (LATER):
-      • Put pictures in assets with THESE exact names if you have them:
-          hero-nacho-idle.png
-          hero-nacho-run1.png
-          hero-nacho-run2.png
-          hero-nacho-jump.png
-          hero-popcorn-idle.png
-          hero-popcorn-run1.png
-          hero-popcorn-run2.png
-          hero-popcorn-jump.png
-          hero-cheeto-idle.png
-          hero-cheeto-run1.png
-          hero-cheeto-run2.png
-          hero-cheeto-jump.png
-          tiles-ground.png
-          tiles-platform.png
-          spikes.png
-          snack-collectible.png
-          flag-goal.png
-          bg-layer1.png
-          boss-evil-kurkure.png
-          boss-one-chip.png
-          boss-taki-man.png
-          music-main.mp3   (any loopable BGM)
-
-      • If you DON’T add any of these yet, the game STILL WORKS.
-        It will just use simple colored shapes and no music.
-
-    THAT’S IT. You never have to touch the code below if you don’t want to.
-  -->
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    html, body {
-      height: 100%;
-      background: radial-gradient(circle at top, #fffaf0 0%, #f0e0c8 70%);
-    }
-
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #game-shell {
-      position: relative;
-      width: 960px;
-      height: 600px;
-      max-width: 100vw;
-      max-height: 100vh;
-      background: repeating-linear-gradient(
-        135deg,
-        #fffdf7 0px,
-        #fffdf7 14px,
-        #f9f0dd 15px,
-        #f9f0dd 16px
-      );
-      border-radius: 24px;
-      border: 4px solid #2b2620;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-      overflow: hidden;
-    }
-
-    #game-inner-frame {
-      position: absolute;
-      inset: 12px;
-      border-radius: 20px;
-      border: 3px dashed rgba(0,0,0,0.2);
-      overflow: hidden;
-      background: #fefaf4;
-    }
-
-    /* INTRO – JMAD */
-
-    #intro-screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at center, #ffffff 0%, #f4e4c4 70%);
-      z-index: 20;
-    }
-
-    #intro-logo {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 40px;
-      letter-spacing: 6px;
-      padding: 20px 30px;
-      border-radius: 18px;
-      border: 4px solid #2b2620;
-      background: linear-gradient(135deg, #ffaf40, #ff6f61);
-      color: #2b2620;
-      box-shadow: 0 10px 0 rgba(0,0,0,0.4);
-    }
-
-    #intro-sub {
-      margin-top: 12px;
-      font-size: 16px;
-      color: #4a4136;
-      text-align: center;
-    }
-
-    #intro-tap {
-      margin-top: 22px;
-      font-size: 13px;
-      padding: 7px 16px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #fff7dc;
-      box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-      cursor: pointer;
-    }
-
-    /* GENERIC OVERLAY SCREENS */
-
-    .screen-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 18px;
-      background: radial-gradient(circle at top,
-        rgba(255,255,255,0.97), rgba(248,242,233,0.97));
-      z-index: 10;
-    }
-
-    .hidden { display: none !important; }
-
-    /* MENU */
-
-    #logo-area {
-      width: 320px;
-      height: 110px;
-      border-radius: 18px;
-      border: 3px dashed rgba(0,0,0,0.35);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: repeating-linear-gradient(
-        -45deg,
-        #fffdf7 0,
-        #fffdf7 8px,
-        #f7ecdd 9px,
-        #f7ecdd 10px
-      );
-      overflow: hidden;
-      text-align: center;
-      color: #4a4136;
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 18px;
-    }
-
-    #menu-title {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 32px;
-      margin-bottom: 4px;
-      text-shadow: 2px 2px 0 #ffe4a0;
-    }
-
-    #menu-subtitle {
-      font-size: 13px;
-      color: #4a4136;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    #character-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      justify-content: center;
-      margin-bottom: 8px;
-    }
-
-    .char-card {
-      width: 175px;
-      height: 205px;
-      border-radius: 16px;
-      border: 3px solid #2b2620;
-      background: #fffaf4;
-      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 8px;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-    }
-
-    .char-card:hover {
-      transform: translateY(-3px) rotate(-1deg);
-      box-shadow: 0 7px 0 rgba(0,0,0,0.25);
-      background: #fff3dd;
-    }
-
-    .char-card.selected {
-      outline: 3px solid #3c91e6;
-      box-shadow: 0 0 0 4px rgba(60,145,230,0.35);
-    }
-
-    .char-card.locked {
-      filter: grayscale(0.8);
-      cursor: default;
-    }
-
-    .char-lock-label {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: rgba(255,255,255,0.7);
-      font-size: 10px;
-    }
-
-    .sprite-placeholder {
-      width: 90px;
-      height: 90px;
-      border-radius: 12px;
-      border: 2px dashed rgba(0,0,0,0.5);
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      text-align: center;
-      background: #ffffff;
-      overflow: hidden;
-    }
-
-    .char-name {
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .char-desc {
-      font-size: 11px;
-      color: #4a4136;
-      text-align: center;
-    }
-
-    #menu-bottom-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .pill-label {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #fffaf2;
-    }
-
-    .main-btn {
-      padding: 8px 16px;
-      border-radius: 20px;
-      border: 3px solid #2b2620;
-      background: #ff7b3a;
-      font-size: 14px;
-      font-weight: 700;
-      color: #2b2620;
-      box-shadow: 0 3px 0 rgba(0,0,0,0.25);
-      cursor: pointer;
-      transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
-    }
-
-    .main-btn.secondary { background: #ffc857; }
-
-    .main-btn:disabled {
-      filter: grayscale(0.8);
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .main-btn:not(:disabled):hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 0 rgba(0,0,0,0.3);
-      filter: brightness(1.05);
-    }
-
-    #wallet-label {
-      margin-top: 6px;
-      font-size: 12px;
-      color: #4a4136;
-    }
-
-    /* SHOP */
-
-    #shop-title {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 26px;
-      margin-bottom: 4px;
-    }
-
-    #shop-wallet {
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    #shop-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      justify-content: center;
-      margin-bottom: 8px;
-    }
-
-    .shop-item {
-      width: 190px;
-      border-radius: 16px;
-      border: 3px solid #2b2620;
-      background: #fffef6;
-      padding: 8px;
-      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
-      font-size: 12px;
-    }
-
-    .shop-heading { font-weight: 700; margin-bottom: 4px; }
-    .shop-price { font-size: 11px; margin-bottom: 4px; }
-    .shop-desc { font-size: 11px; color: #4a4136; margin-bottom: 6px; }
-
-    .shop-btn {
-      padding: 5px 9px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #ffe3a3;
-      font-size: 11px;
-      font-weight: 600;
-      box-shadow: 0 2px 0 rgba(0,0,0,0.25);
-      cursor: pointer;
-    }
-
-    .shop-btn:disabled {
-      filter: grayscale(0.8);
-      cursor: default;
-      box-shadow: none;
-    }
-
-    /* HUD */
-
-    #hud {
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      top: 10px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: rgba(255,252,244,0.9);
-      border: 2px solid rgba(0,0,0,0.6);
-      font-size: 12px;
-      z-index: 2;
-    }
-
-    #hud-left, #hud-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .hud-tag {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #fff6e5;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
-
-    .health-heart {
-      width: 13px;
-      height: 13px;
-      border-radius: 50% 50% 50% 0;
-      background: #ff4b5c;
-      transform: rotate(-45deg);
-      box-shadow: 1px 1px 0 rgba(0,0,0,0.25);
-      position: relative;
-    }
-    .health-heart::after,
-    .health-heart::before {
-      content:"";
-      position:absolute;
-      width:13px;
-      height:13px;
-      border-radius:50%;
-      background:#ff4b5c;
-    }
-    .health-heart::after { top:-6px; left:0; }
-    .health-heart::before { top:0; left:6px; }
-
-    /* OVERLAY (PAUSE, GAME OVER, WIN, ETC.) */
-
-    #overlay-card {
-      width: 420px;
-      max-width: 90%;
-      border-radius: 22px;
-      border: 3px solid #2b2620;
-      background: #fffaf2;
-      box-shadow: 0 8px 0 rgba(0,0,0,0.25);
-      padding: 18px 22px 14px;
-      text-align: center;
-    }
-
-    #overlay-title {
-      font-size: 22px;
-      margin-bottom: 4px;
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-    }
-
-    #overlay-text {
-      font-size: 13px;
-      margin-bottom: 10px;
-      color: #4a4136;
-    }
-
-    #overlay-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .btn-small {
-      padding: 6px 13px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #ffe3a3;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 3px 0 rgba(0,0,0,0.25);
-    }
-
-    #pause-hint {
-      position: absolute;
-      right: 16px;
-      bottom: 70px;
-      font-size: 10px;
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.8);
-      border: 2px solid rgba(0,0,0,0.4);
-      z-index: 2;
-    }
-
-    /* CANVAS */
-
-    #game-canvas {
-      position: absolute;
-      inset: 0;
-      margin: auto;
-      background: #b7e0ff;
-      image-rendering: pixelated;
-      touch-action: none;
-      z-index: 1;
-      display: block;
-    }
-
-    audio { display:none; }
-
-    /* TOUCH CONTROLS */
-
-    #touch-controls {
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 8px;
-      height: 56px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .touch-group {
-      display: flex;
-      gap: 6px;
-    }
-
-    .touch-btn {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      border: 3px solid #2b2620;
-      background: rgba(255,255,255,0.95);
-      box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: 700;
-      pointer-events: auto;
-      touch-action: none;
-    }
-
-    .touch-btn:active {
-      transform: translateY(2px);
-      box-shadow: 0 2px 0 rgba(0,0,0,0.3);
-    }
-
-    @media (min-width: 900px) {
-      #touch-controls { opacity: 0.2; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Snackventure</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;font-family:system-ui,sans-serif;}
+html,body{width:100%;height:100%;background:radial-gradient(circle at top,#fffaf0,#f0e0c8);display:flex;align-items:center;justify-content:center;}
+#shell{position:relative;width:960px;height:600px;max-width:100vw;max-height:100vh;background:repeating-linear-gradient(135deg,#fffdf7 0,#fffdf7 14px,#f9f0dd 15px,#f9f0dd 16px);border-radius:24px;border:4px solid #2b2620;box-shadow:0 10px 25px rgba(0,0,0,0.2);overflow:hidden;}
+#frame{position:absolute;inset:12px;border-radius:20px;border:3px dashed rgba(0,0,0,0.2);overflow:hidden;background:#fefaf4;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px;background:radial-gradient(circle at top,rgba(255,255,255,0.97),rgba(248,242,233,0.97));z-index:5;}
+.hidden{display:none!important;}
+#intro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center,#fff,#f4e4c4);z-index:10;}
+#intro-logo{font-size:32px;letter-spacing:4px;padding:18px 26px;border-radius:18px;border:4px solid #2b2620;box-shadow:0 10px 0 rgba(0,0,0,0.35);background:linear-gradient(135deg,#ffaf40,#ff6f61);color:#2b2620;text-align:center;}
+#intro-sub{margin-top:10px;font-size:14px;color:#4a4136;text-align:center;}
+#intro-btn{margin-top:20px;font-size:13px;padding:8px 18px;border-radius:999px;border:2px solid #2b2620;background:#fff7dc;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,0.25);}
+#logo-area{width:320px;height:110px;border-radius:18px;border:3px dashed rgba(0,0,0,0.35);margin-bottom:8px;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(-45deg,#fffdf7 0,#fffdf7 8px,#f7ecdd 9px,#f7ecdd 10px);overflow:hidden;text-align:center;font-size:16px;color:#4a4136;}
+#menu-title{font-size:30px;letter-spacing:2px;text-shadow:2px 2px 0 #ffe4a0;margin-bottom:4px;}
+#menu-sub{font-size:12px;color:#4a4136;margin-bottom:10px;text-align:center;}
+#char-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:10px;}
+.card{width:170px;height:195px;border-radius:14px;border:3px solid #2b2620;background:#fffaf4;display:flex;flex-direction:column;align-items:center;padding:8px;position:relative;box-shadow:0 4px 0 rgba(0,0,0,0.18);cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 0 rgba(0,0,0,0.24);}
+.card.selected{outline:3px solid #3c91e6;}
+.card.locked{filter:grayscale(.7);cursor:default;}
+.lock-tag{position:absolute;top:6px;right:6px;font-size:10px;padding:2px 6px;border-radius:999px;border:2px solid rgba(0,0,0,0.7);background:rgba(0,0,0,0.05);}
+.sprite-box{width:88px;height:88px;border-radius:12px;border:2px dashed rgba(0,0,0,0.4);margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:11px;text-align:center;background:#fff;overflow:hidden;}
+.card-name{font-weight:700;margin-bottom:2px;}
+.card-desc{font-size:11px;text-align:center;color:#4a4136;}
+#menu-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin-top:8px;}
+.pill{font-size:11px;padding:4px 10px;border-radius:999px;border:2px solid rgba(0,0,0,0.7);background:#fffaf2;}
+.btn{padding:7px 14px;border-radius:18px;border:3px solid #2b2620;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,0.25);}
+.btn.orange{background:#ff7b3a;}
+.btn.yellow{background:#ffc857;}
+.btn:disabled{filter:grayscale(.7);cursor:default;box-shadow:none;}
+#wallet-lbl{margin-top:4px;font-size:12px;color:#4a4136;}
+#shop-title{font-size:26px;margin-bottom:4px;}
+#shop-wallet{font-size:14px;margin-bottom:10px;}
+#shop-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-bottom:8px;}
+.shop-item{width:190px;border-radius:16px;border:3px solid #2b2620;background:#fffef6;padding:8px;box-shadow:0 4px 0 rgba(0,0,0,0.2);font-size:12px;}
+.sh{font-weight:700;margin-bottom:2px;}
+.sp{font-size:11px;margin-bottom:2px;}
+.sd{font-size:11px;color:#4a4136;margin-bottom:4px;}
+.sbtn{padding:5px 10px;border-radius:999px;border:2px solid #2b2620;background:#ffe3a3;cursor:pointer;font-size:11px;font-weight:600;}
+.sbtn:disabled{filter:grayscale(.7);cursor:default;}
+#hud{position:absolute;top:8px;left:12px;right:12px;height:34px;display:flex;align-items:center;justify-content:space-between;padding:3px 8px;border-radius:999px;border:2px solid rgba(0,0,0,0.6);background:rgba(255,252,244,0.9);font-size:11px;z-index:2;}
+.hrow{display:flex;gap:8px;align-items:center;}
+.htag{padding:2px 7px;border-radius:999px;border:2px solid rgba(0,0,0,0.7);background:#fff6e5;display:flex;gap:4px;align-items:center;}
+.heart{width:12px;height:12px;border-radius:50% 50% 50% 0;background:#ff4b5c;transform:rotate(-45deg);position:relative;display:inline-block;}
+.heart::before,.heart::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#ff4b5c;}
+.heart::before{left:6px;top:0;}
+.heart::after{left:0;top:-6px;}
+#overlay{justify-content:center;}
+#ov-card{width:380px;max-width:90%;border-radius:20px;border:3px solid #2b2620;background:#fffaf2;box-shadow:0 8px 0 rgba(0,0,0,0.2);padding:16px 18px;text-align:center;}
+#ov-title{font-size:22px;margin-bottom:4px;}
+#ov-text{font-size:13px;margin-bottom:10px;color:#4a4136;}
+#ov-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;}
+.sbtn2{padding:6px 12px;border-radius:999px;border:2px solid #2b2620;background:#ffe3a3;font-size:12px;font-weight:600;cursor:pointer;}
+#game-canvas{position:absolute;inset:0;width:100%;height:100%;background:#b7e0ff;image-rendering:pixelated;touch-action:none;z-index:1;}
+#pause-hint{position:absolute;right:14px;bottom:70px;font-size:10px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,0.85);border:2px solid rgba(0,0,0,0.4);z-index:2;}
+#touch-ctrls{position:absolute;left:10px;right:10px;bottom:8px;height:56px;display:flex;justify-content:space-between;align-items:center;z-index:3;pointer-events:none;}
+.tgrp{display:flex;gap:6px;}
+.tbtn{width:54px;height:54px;border-radius:16px;border:3px solid #2b2620;background:rgba(255,255,255,0.9);box-shadow:0 4px 0 rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:22px;pointer-events:auto;touch-action:none;}
+audio{display:none;}
+</style>
 </head>
 <body>
-  <div id="game-shell">
-    <div id="game-inner-frame">
+<div id="shell">
+  <div id="frame">
 
-      <!-- INTRO: JMAD PRODUCTIONS -->
-      <div id="intro-screen">
-        <div id="intro-logo">JMAD PRODUCTIONS</div>
-        <div id="intro-sub">
-          Presents: Snackventure – The Snack Cinematic Universe Game
-        </div>
-        <button id="intro-tap">Tap / Click to Continue</button>
-      </div>
-
-      <!-- MAIN MENU -->
-      <div id="menu-screen" class="screen-overlay hidden">
-        <div id="logo-area">
-          Snackventure logo<br/>goes here
-        </div>
-
-        <h1 id="menu-title">Snackventure</h1>
-        <p id="menu-subtitle">
-          Scroll, jump and stomp through the Snack Cinematic Universe.
-        </p>
-
-        <div id="character-grid">
-          <!-- Nacho Man (unlocked from start) -->
-          <button class="char-card" data-char="nacho">
-            <div class="sprite-placeholder">
-              Nacho Man image
-            </div>
-            <div class="char-name">Nacho Man</div>
-            <div class="char-desc">
-              Ex‑miner powered by a glowing gem. Balanced stats.
-            </div>
-          </button>
-
-          <!-- Popcorn Man (locked) -->
-          <button class="char-card locked" data-char="popcorn">
-            <div class="char-lock-label">LOCKED</div>
-            <div class="sprite-placeholder">
-              Popcorn Man image
-            </div>
-            <div class="char-name">Popcorn Man</div>
-            <div class="char-desc">
-              Arsenal hero with floaty jumps. Easier control.
-            </div>
-          </button>
-
-          <!-- Cheeto Man (locked) -->
-          <button class="char-card locked" data-char="cheeto">
-            <div class="char-lock-label">LOCKED</div>
-            <div class="sprite-placeholder">
-              Cheeto Man image
-            </div>
-            <div class="char-name">Cheeto Man</div>
-            <div class="char-desc">
-              No powers, just insane strength and mindpower.
-            </div>
-          </button>
-        </div>
-
-        <div id="menu-bottom-row">
-          <span class="pill-label">PC: ← → / A D move • Space/↑ jump</span>
-          <span class="pill-label">Mobile: use buttons at bottom</span>
-          <button id="shop-button" class="main-btn secondary">Shop</button>
-          <button id="start-button" class="main-btn" disabled>Start Adventure</button>
-        </div>
-
-        <div id="wallet-label">
-          Total snacks (coins): <span id="wallet-amount">0</span>
-        </div>
-      </div>
-
-      <!-- SHOP -->
-      <div id="shop-screen" class="screen-overlay hidden">
-        <h2 id="shop-title">Snack Shop</h2>
-        <div id="shop-wallet">
-          Your snacks: <span id="shop-snacks">0</span>
-        </div>
-
-        <div id="shop-grid">
-          <div class="shop-item">
-            <div class="shop-heading">Unlock Popcorn Man</div>
-            <div class="shop-price">Cost: 60 snacks</div>
-            <div class="shop-desc">
-              Floaty popcorn hero with SCU weapons. Good control.
-            </div>
-            <button class="shop-btn" id="buy-popcorn">Buy Popcorn Man</button>
-          </div>
-
-          <div class="shop-item">
-            <div class="shop-heading">Unlock Cheeto Man</div>
-            <div class="shop-price">Cost: 80 snacks</div>
-            <div class="shop-desc">
-              Super fast, high‑skill hero with crazy strength.
-            </div>
-            <button class="shop-btn" id="buy-cheeto">Buy Cheeto Man</button>
-          </div>
-
-          <div class="shop-item">
-            <div class="shop-heading">Extra Heart</div>
-            <div class="shop-price">Cost: 40 snacks</div>
-            <div class="shop-desc">
-              +1 max health for all heroes (permanent once bought).
-            </div>
-            <button class="shop-btn" id="buy-heart">Buy Extra Heart</button>
-          </div>
-
-          <div class="shop-item">
-            <div class="shop-heading">Power Snack Booster</div>
-            <div class="shop-price">Cost: 50 snacks</div>
-            <div class="shop-desc">
-              Start every level with a short speed + jump buff.
-            </div>
-            <button class="shop-btn" id="buy-buff">Buy Booster</button>
-          </div>
-        </div>
-
-        <button id="shop-back" class="btn-small">Back to Menu</button>
-      </div>
-
-      <!-- HUD -->
-      <div id="hud">
-        <div id="hud-left">
-          <div class="hud-tag"><strong>Hero:</strong> <span id="hud-character">None</span></div>
-          <div class="hud-tag"><strong>Villain:</strong> <span id="hud-villain">–</span></div>
-          <div class="hud-tag"><strong>Level:</strong> <span id="hud-level">–</span></div>
-        </div>
-        <div id="hud-right">
-          <div class="hud-tag"><strong>Health:</strong> <span id="hud-health-hearts"></span></div>
-          <div class="hud-tag"><strong>Run snacks:</strong> <span id="hud-score">0</span></div>
-          <div class="hud-tag"><strong>Total:</strong> <span id="hud-bank">0</span></div>
-        </div>
-      </div>
-
-      <div id="pause-hint">Esc = Pause • R = Restart level</div>
-
-      <!-- OVERLAY (pause / game over / win) -->
-      <div id="overlay-screen" class="screen-overlay hidden">
-        <div id="overlay-card">
-          <div id="overlay-title">Paused</div>
-          <div id="overlay-text">Take a break, snack hero.</div>
-          <div id="overlay-buttons">
-            <button id="btn-resume" class="btn-small">Resume</button>
-            <button id="btn-restart" class="btn-small">Restart Level</button>
-            <button id="btn-back-menu" class="btn-small">Back to Menu</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CANVAS -->
-      <canvas id="game-canvas" width="960" height="540"></canvas>
-
-      <!-- TOUCH CONTROLS -->
-      <div id="touch-controls">
-        <div class="touch-group">
-          <button class="touch-btn" data-action="left">◀</button>
-          <button class="touch-btn" data-action="right">▶</button>
-        </div>
-        <div class="touch-group">
-          <button class="touch-btn" data-action="jump">⬆</button>
-        </div>
-      </div>
-
-      <!-- BACKGROUND MUSIC SLOT (optional) -->
-      <audio id="bg-music" src="assets/music-main.mp3" loop></audio>
-
+    <div id="intro">
+      <div id="intro-logo">JMAD PRODUCTIONS</div>
+      <div id="intro-sub">Presents: Snackventure &ndash; The Snack Cinematic Universe Game</div>
+      <button id="intro-btn">Tap / Click to Continue</button>
     </div>
-  </div>
 
-  <script>
-  window.addEventListener("load", () => {
-    /***** BASIC CONSTANTS *****/
-    const canvas = document.getElementById("game-canvas");
-    const ctx = canvas.getContext("2d");
-    const WIDTH = canvas.width;
-    const HEIGHT = canvas.height;
-    const TILE = 48;
-    const GRAVITY = 52;
-
-    const bgMusic = document.getElementById("bg-music");
-
-    let lastTime = 0;
-    let gameState = "intro"; // intro | menu | playing | paused | level-complete | game-over | boss-defeated
-    let keys = {};
-    const controls = { left: false, right: false, jump: false };
-
-    /***** DOM ELEMENTS *****/
-    const introScreen = document.getElementById("intro-screen");
-    const introTap = document.getElementById("intro-tap");
-
-    const menuScreen = document.getElementById("menu-screen");
-    const shopScreen = document.getElementById("shop-screen");
-    const overlayScreen = document.getElementById("overlay-screen");
-    const overlayTitle = document.getElementById("overlay-title");
-    const overlayText = document.getElementById("overlay-text");
-    const btnResume = document.getElementById("btn-resume");
-    const btnRestart = document.getElementById("btn-restart");
-    const btnBackMenu = document.getElementById("btn-back-menu");
-
-    const startButton = document.getElementById("start-button");
-    const shopButton = document.getElementById("shop-button");
-    const charCards = Array.from(document.querySelectorAll(".char-card"));
-    const walletAmount = document.getElementById("wallet-amount");
-
-    const shopSnacks = document.getElementById("shop-snacks");
-    const shopBack = document.getElementById("shop-back");
-    const btnBuyPopcorn = document.getElementById("buy-popcorn");
-    const btnBuyCheeto = document.getElementById("buy-cheeto");
-    const btnBuyHeart = document.getElementById("buy-heart");
-    const btnBuyBuff = document.getElementById("buy-buff");
-
-    const hudCharacter = document.getElementById("hud-character");
-    const hudVillain = document.getElementById("hud-villain");
-    const hudLevel = document.getElementById("hud-level");
-    const hudHealthHearts = document.getElementById("hud-health-hearts");
-    const hudScore = document.getElementById("hud-score");
-    const hudBank = document.getElementById("hud-bank");
-
-    const touchBtns = Array.from(document.querySelectorAll(".touch-btn"));
-
-    /***** HERO / VILLAIN CONFIG *****/
-    const HERO_CONFIG = {
-      nacho: { displayName: "Nacho Man", move: 6.0, jump: 15.5, color: "#ffb347" },
-      popcorn:{ displayName: "Popcorn Man", move: 5.4, jump: 16.5, color: "#ffe97f" },
-      cheeto: { displayName: "Cheeto Man",  move: 7.5, jump: 15.0, color: "#ffd45a" }
-    };
-
-    const VILLAIN_CONFIG = {
-      nacho:  { id: "evilKurkure", displayName: "Evil Kurkure" },
-      popcorn:{ id: "oneChip",     displayName: "The One Chip" },
-      cheeto: { id: "takiMan",     displayName: "Taki Man" }
-    };
-
-    /***** ASSET IMAGE LOADER (optional) *****/
-    const ASSETS = {
-      heroes: {
-        nacho: {
-          idle: "assets/hero-nacho-idle.png",
-          run1:"assets/hero-nacho-run1.png",
-          run2:"assets/hero-nacho-run2.png",
-          jump:"assets/hero-nacho-jump.png"
-        },
-        popcorn:{
-          idle:"assets/hero-popcorn-idle.png",
-          run1:"assets/hero-popcorn-run1.png",
-          run2:"assets/hero-popcorn-run2.png",
-          jump:"assets/hero-popcorn-jump.png"
-        },
-        cheeto:{
-          idle:"assets/hero-cheeto-idle.png",
-          run1:"assets/hero-cheeto-run1.png",
-          run2:"assets/hero-cheeto-run2.png",
-          jump:"assets/hero-cheeto-jump.png"
-        }
-      },
-      bosses:{
-        evilKurkure:"assets/boss-evil-kurkure.png",
-        oneChip:"assets/boss-one-chip.png",
-        takiMan:"assets/boss-taki-man.png"
-      },
-      tiles:{
-        ground:"assets/tiles-ground.png",
-        platform:"assets/tiles-platform.png",
-        spike:"assets/spikes.png",
-        collectible:"assets/snack-collectible.png",
-        goal:"assets/flag-goal.png"
-      },
-      background:"assets/bg-layer1.png"
-    };
-
-    function img(src){ const i=new Image(); i.src=src; return i; }
-
-    const IMAGES = {
-      heroes:{
-        nacho:{
-          idle:img(ASSETS.heroes.nacho.idle),
-          run1:img(ASSETS.heroes.nacho.run1),
-          run2:img(ASSETS.heroes.nacho.run2),
-          jump:img(ASSETS.heroes.nacho.jump)
-        },
-        popcorn:{
-          idle:img(ASSETS.heroes.popcorn.idle),
-          run1:img(ASSETS.heroes.popcorn.run1),
-          run2:img(ASSETS.heroes.popcorn.run2),
-          jump:img(ASSETS.heroes.popcorn.jump)
-        },
-        cheeto:{
-          idle:img(ASSETS.heroes.cheeto.idle),
-          run1:img(ASSETS.heroes.cheeto.run1),
-          run2:img(ASSETS.heroes.cheeto.run2),
-          jump:img(ASSETS.heroes.cheeto.jump)
-        }
-      },
-      bosses:{
-        evilKurkure:img(ASSETS.bosses.evilKurkure),
-        oneChip:img(ASSETS.bosses.oneChip),
-        takiMan:img(ASSETS.bosses.takiMan)
-      },
-      tiles:{
-        ground:img(ASSETS.tiles.ground),
-        platform:img(ASSETS.tiles.platform),
-        spike:img(ASSETS.tiles.spike),
-        collectible:img(ASSETS.tiles.collectible),
-        goal:img(ASSETS.tiles.goal)
-      },
-      background:img(ASSETS.background)
-    };
-
-    /***** LEVELS *****/
-    // . empty, # ground, - platform, ^ spike, C snack, e walker, f flyer,
-    // H heart, P buff, S start, G goal, B boss
-    const LEVELS = [
-      {
-        name:"1 - Nacho Mines",
-        rows:[
-          ".........................",
-          ".........................",
-          "......C..................",
-          ".................C.......",
-          ".........................",
-          ".....C....e..............",
-          ".........................",
-          "S#####............#####G.",
-          "#########################",
-          "#########################",
-          "#########################"
-        ]
-      },
-      {
-        name:"2 - Snack Hills",
-        rows:[
-          ".........................",
-          ".........................",
-          "....C............C.......",
-          ".....---.................",
-          ".........................",
-          "....C......e....C........",
-          "..........#####..........",
-          "S#####..............##G..",
-          "#########################",
-          "#########################",
-          "#########################"
-        ]
-      },
-      {
-        name:"3 - Spicy Canyon",
-        rows:[
-          ".........................",
-          ".........................",
-          "......C.............C....",
-          "..........e..............",
-          ".....^^^.................",
-          ".............C...........",
-          ".....######..............",
-          "S####......#####.....G...",
-          "#########################",
-          "#########################",
-          "#########################"
-        ]
-      },
-      {
-        name:"4 - Flying Snackway",
-        rows:[
-          ".........................",
-          "..........f..............",
-          ".........................",
-          ".....---.....---.........",
-          ".........................",
-          "..C....H..........C......",
-          ".........................",
-          "S#####..............##G..",
-          "#########################",
-          "#########################",
-          "#########################"
-        ]
-      },
-      {
-        name:"5 - Power Snack Lab",
-        rows:[
-          ".........................",
-          ".........................",
-          ".....H...................",
-          "..........P..............",
-          ".........................",
-          "....e...............C....",
-          "..........---............",
-          "S#####..........#####.G..",
-          "#########################",
-          "#########################",
-          "#########################"
-        ]
-      },
-      {
-        name:"6 - Final Crunch (Boss)",
-        rows:[
-          ".........................",
-          ".........................",
-          ".........................",
-          ".........................",
-          "......C..................",
-          "..........B..............",
-          ".........................",
-          "S#####..............##G..",
-          "#########################",
-          "#########################",
-          "#########################"
-        ]
-      }
-    ];
-
-    /***** WORLD CLASSES *****/
-    class Tile {
-      constructor(x,y,type){this.x=x;this.y=y;this.w=TILE;this.h=TILE;this.type=type;}
-    }
-    class Collectible {
-      constructor(x,y){this.x=x;this.y=y;this.w=TILE*0.6;this.h=TILE*0.6;this.collected=false;}
-    }
-    class Powerup {
-      constructor(x,y,kind){this.x=x;this.y=y;this.w=TILE*0.7;this.h=TILE*0.7;this.kind=kind;this.taken=false;}
-    }
-    class Enemy {
-      constructor(x,y,type){
-        this.x=x;this.y=y;this.w=TILE*0.8;this.h=TILE*0.8;
-        this.type=type;
-        this.vx=type==="walker"?2.2*(Math.random()<0.5?-1:1):2.0;
-        this.vy=0;
-        this.baseX=x;this.baseY=y;
-        this.patrol=3*TILE;
-        this.alive=true;
-        this.anim=0;
-        this.onGround=false;
-      }
-    }
-    class Boss {
-      constructor(x,y,id){
-        this.x=x;this.y=y;this.w=TILE*2;this.h=TILE*2;
-        this.vx=2.5;this.vy=0;
-        this.id=id;
-        this.health=6;this.maxHealth=6;
-        this.phase=1;this.anim=0;this.dir=1;this.onGround=false;
-      }
-    }
-    class Player {
-      constructor(x,y,key){
-        this.x=x;this.y=y;this.w=TILE*0.8;this.h=TILE*0.9;
-        this.vx=0;this.vy=0;this.onGround=false;
-        this.key=key;
-        this.move=HERO_CONFIG[key].move;
-        this.jump=HERO_CONFIG[key].jump;
-        this.color=HERO_CONFIG[key].color;
-        this.health=3;this.maxHealth=3;
-        this.score=0;
-        this.facing=1;
-        this.anim=0;
-        this.state="idle";
-        this.inv=0;
-        this.buff=0;
-      }
-    }
-
-    /***** GAME STATE VARS *****/
-    let currentLevel = 0;
-    let world = null;
-    let player = null;
-    let boss = null;
-    let selectedHeroKey = null;
-    let selectedVillain = null;
-    let cameraX = 0;
-
-    let snackBank = 0;
-    const unlocked = { nacho:true, popcorn:false, cheeto:false };
-    let extraHeart = false;
-    let buffBooster = false;
-
-    /***** BUILD LEVEL *****/
-    function buildLevel(idx){
-      const layout = LEVELS[idx];
-      const rows = layout.rows;
-
-      const tiles=[], plats=[], spikes=[], snacks=[], enemies=[], powerups=[];
-      let startX=0,startY=0;
-      let goal={x:0,y:0,w:TILE,h:TILE};
-      let bossSpawn=null;
-
-      for(let r=0;r<rows.length;r++){
-        const line=rows[r];
-        for(let c=0;c<line.length;c++){
-          const ch=line[c];
-          const x=c*TILE,y=r*TILE;
-          if(ch==="#") tiles.push(new Tile(x,y,"ground"));
-          else if(ch==="-" ) plats.push(new Tile(x,y,"platform"));
-          else if(ch==="^") spikes.push(new Tile(x,y,"spike"));
-          else if(ch==="C") snacks.push(new Collectible(x+TILE*0.2,y+TILE*0.2));
-          else if(ch==="e") enemies.push(new Enemy(x+TILE*0.1,y+TILE*0.2,"walker"));
-          else if(ch==="f") enemies.push(new Enemy(x+TILE*0.1,y+TILE*0.2,"flyer"));
-          else if(ch==="H") powerups.push(new Powerup(x+TILE*0.15,y+TILE*0.15,"heart"));
-          else if(ch==="P") powerups.push(new Powerup(x+TILE*0.15,y+TILE*0.15,"buff"));
-          else if(ch==="S"){ startX=x+TILE*0.2; startY=y-TILE*0.2; }
-          else if(ch==="G"){ goal={x:x+TILE*0.1,y,w:TILE*0.8,h:TILE}; }
-          else if(ch==="B"){ bossSpawn={x:x+TILE*0.1,y:y-TILE}; }
-        }
-      }
-
-      const width = rows[0].length*TILE;
-      const height= rows.length*TILE;
-
-      world = {
-        tiles,plats,spikes,
-        snacks,enemies,powerups,
-        goal,bossSpawn,
-        width,height,
-        name:layout.name
-      };
-
-      boss=null;
-      if(idx===LEVELS.length-1 && bossSpawn && selectedVillain){
-        boss=new Boss(bossSpawn.x,bossSpawn.y,selectedVillain.id);
-      }
-
-      player.x=startX; player.y=startY;
-      player.vx=0; player.vy=0; player.score=0;
-
-      player.maxHealth = extraHeart?4:3;
-      if(buffBooster) player.buff=4;
-
-      cameraX=0;
-    }
-
-    function resetPlayer(key){
-      player=new Player(0,0,key);
-    }
-
-    /***** INPUT *****/
-    window.addEventListener("keydown",e=>{
-      keys[e.key]=true;
-      if(e.key==="Escape"){
-        if(gameState==="playing") setPause(true);
-        else if(gameState==="paused") setPause(false);
-      }
-      if((e.key==="r"||e.key==="R") && gameState==="playing"){
-        restartLevel();
-      }
-    });
-    window.addEventListener("keyup",e=>{keys[e.key]=false;});
-
-    function updateControlsFromKeyboard(){
-      controls.left = !!(keys["ArrowLeft"]||keys["a"]||keys["A"]);
-      controls.right= !!(keys["ArrowRight"]||keys["d"]||keys["D"]);
-      controls.jump = !!(keys["ArrowUp"]||keys["w"]||keys["W"]||keys[" "]);
-    }
-
-    touchBtns.forEach(btn=>{
-      const action=btn.dataset.action;
-      btn.addEventListener("pointerdown",e=>{
-        e.preventDefault(); controls[action]=true;
-      });
-      const stop=e=>{e.preventDefault(); controls[action]=false;};
-      btn.addEventListener("pointerup",stop);
-      btn.addEventListener("pointerleave",stop);
-      btn.addEventListener("pointercancel",stop);
-    });
-
-    /***** COLLISION HELPERS *****/
-    function aabb(a,b){
-      return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
-    }
-    function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-
-    function resolve(entity,solids,plats,axis){
-      for(const t of solids){
-        if(!aabb(entity,t)) continue;
-        if(axis==="x"){
-          if(entity.vx>0) entity.x=t.x-entity.w;
-          else if(entity.vx<0) entity.x=t.x+t.w;
-          entity.vx=0;
-        }else{
-          if(entity.vy>0){
-            entity.y=t.y-entity.h; entity.vy=0; entity.onGround=true;
-          }else if(entity.vy<0){
-            entity.y=t.y+t.h; entity.vy=0;
-          }
-        }
-      }
-      if(axis==="y" && entity.vy>=0){
-        for(const p of plats){
-          const eps=4;
-          const below=entity.y+entity.h<=p.y+eps;
-          if(!below) continue;
-          if(entity.x<p.x+p.w && entity.x+entity.w>p.x &&
-             entity.y+entity.h>p.y && entity.y+entity.h<p.y+p.h){
-            entity.y=p.y-entity.h;
-            entity.vy=0;
-            entity.onGround=true;
-          }
-        }
-      }
-    }
-
-    /***** PLAYER UPDATE *****/
-    function updatePlayer(dt){
-      if(!player||!world) return;
-
-      updateControlsFromKeyboard();
-
-      let targetVx=0;
-      if(controls.left) targetVx-=player.move;
-      if(controls.right) targetVx+=player.move;
-      player.vx=targetVx;
-      if(player.vx!==0) player.facing=player.vx>0?1:-1;
-
-      if(player.buff>0){
-        player.buff-=dt;
-        player.move = HERO_CONFIG[player.key].move*1.3;
-        player.jump = HERO_CONFIG[player.key].jump*1.2;
-      }else{
-        player.move = HERO_CONFIG[player.key].move;
-        player.jump = HERO_CONFIG[player.key].jump;
-      }
-
-      if(controls.jump && player.onGround){
-        player.vy=-player.jump;
-        player.onGround=false;
-      }
-
-      player.vy+=GRAVITY*dt;
-
-      player.x+=player.vx;
-      resolve(player,world.tiles,world.plats,"x");
-
-      player.y+=player.vy;
-      player.onGround=false;
-      resolve(player,world.tiles,world.plats,"y");
-
-      // spikes
-      world.spikes.forEach(s=>{ if(aabb(player,s)) damagePlayer(1); });
-
-      // snacks
-      world.snacks.forEach(c=>{
-        if(!c.collected && aabb(player,c)){
-          c.collected=true;
-          player.score+=1;
-          snackBank+=1;
-        }
-      });
-
-      // powerups
-      world.powerups.forEach(p=>{
-        if(!p.taken && aabb(player,p)){
-          p.taken=true;
-          if(p.kind==="heart"){
-            if(player.health<player.maxHealth) player.health+=1;
-          }else if(p.kind==="buff"){
-            player.buff=6;
-          }
-        }
-      });
-
-      // enemies
-      world.enemies.forEach(e=>{
-        if(!e.alive) return;
-        if(aabb(player,e)){
-          if(player.vy>0 && player.y+player.h-10<e.y){
-            e.alive=false;
-            player.vy=-player.jump*0.8;
-          }else{
-            damagePlayer(1);
-          }
-        }
-      });
-
-      // boss
-      if(boss && boss.health>0 && aabb(player,boss)){
-        if(player.vy>0 && player.y+player.h-10<boss.y){
-          boss.health-=1;
-          player.vy=-player.jump*0.9;
-          if(boss.health<=0) bossDefeated();
-        }else{
-          damagePlayer(2);
-        }
-      }
-
-      // goal
-      if(aabb(player,world.goal)) levelComplete();
-
-      // fall
-      if(player.y>world.height+200) damagePlayer(player.maxHealth);
-
-      player.anim+=dt;
-      if(player.inv>0) player.inv-=dt;
-
-      if(!player.onGround) player.state="jump";
-      else if(Math.abs(player.vx)>0.1) player.state="run";
-      else player.state="idle";
-
-      const center=player.x+player.w/2;
-      cameraX=clamp(center-WIDTH/2,0,Math.max(0,world.width-WIDTH));
-    }
-
-    function damagePlayer(n){
-      if(!player) return;
-      if(player.inv>0) return;
-      player.health-=n;
-      player.inv=1;
-      player.state="hurt";
-      if(player.health<=0){
-        player.health=0;
-        triggerGameOver();
-      }
-    }
-
-    /***** ENEMIES & BOSS UPDATE *****/
-    function updateEnemies(dt){
-      if(!world) return;
-      world.enemies.forEach(e=>{
-        if(!e.alive) return;
-        e.anim+=dt;
-        if(e.type==="walker"){
-          e.vy+=GRAVITY*dt;
-          e.x+=e.vx;
-          e.y+=e.vy;
-          e.onGround=false;
-          resolve(e,world.tiles,[],"x");
-          resolve(e,world.tiles,[],"y");
-          const d=Math.abs(e.x-e.baseX);
-          if(d>e.patrol) e.vx*=-1;
-        }else{
-          e.x+=e.vx;
-          e.y=e.baseY+Math.sin(e.anim*3)*18;
-          const L=e.baseX-2*TILE,R=e.baseX+2*TILE;
-          if(e.x<L||e.x>R) e.vx*=-1;
-        }
-      });
-    }
-
-    function updateBoss(dt){
-      if(!boss||boss.health<=0||!world) return;
-      boss.anim+=dt;
-      boss.vy+=GRAVITY*dt;
-      boss.x+=boss.vx*boss.dir;
-      boss.y+=boss.vy;
-      resolve(boss,world.tiles,[],"x");
-      resolve(boss,world.tiles,[],"y");
-      if(boss.x<0){boss.x=0;boss.dir=1;}
-      else if(boss.x+boss.w>world.width){boss.x=world.width-boss.w;boss.dir=-1;}
-      const chance=boss.phase===1?0.002:0.004;
-      if(Math.random()<chance && boss.onGround){
-        boss.vy=-22;boss.onGround=false;
-      }
-      if(boss.health<=boss.maxHealth/2 && boss.phase===1){
-        boss.phase=2;boss.vx*=1.3;
-      }
-    }
-
-    /***** DRAWING *****/
-    function drawBackground(){
-      ctx.fillStyle="#b7e0ff";
-      ctx.fillRect(0,0,WIDTH,HEIGHT);
-      ctx.save();
-      ctx.translate(-cameraX*0.3,0);
-      if(IMAGES.background && IMAGES.background.complete){
-        const img=IMAGES.background;
-        const w=img.width;
-        const times=Math.ceil(WIDTH/w)+2;
-        for(let i=-1;i<times;i++){
-          ctx.drawImage(img,i*w,HEIGHT-img.height);
-        }
-      }else{
-        ctx.fillStyle="#9fd7ff";
-        for(let i=-1;i<12;i++){
-          const hx=i*260,hy=HEIGHT-180;
-          ctx.beginPath();
-          ctx.moveTo(hx,HEIGHT);
-          ctx.quadraticCurveTo(hx+130,hy-80,hx+260,HEIGHT);
-          ctx.closePath();
-          ctx.fill();
-        }
-      }
-      ctx.restore();
-    }
-
-    function drawTiles(){
-      if(!world) return;
-      const all=[
-        ...world.tiles.map(t=>({...t,type:"ground"})),
-        ...world.plats.map(p=>({...p,type:"platform"})),
-        ...world.spikes.map(s=>({...s,type:"spike"}))
-      ];
-      for(const t of all){
-        const sx=t.x-cameraX,sy=t.y;
-        if(sx+t.w<0||sx>WIDTH) continue;
-        ctx.save();
-        ctx.translate(sx,sy);
-        if(t.type==="ground"){
-          if(IMAGES.tiles.ground && IMAGES.tiles.ground.complete)
-            ctx.drawImage(IMAGES.tiles.ground,0,0,t.w,t.h);
-          else{
-            ctx.fillStyle="#f9c784";
-            ctx.fillRect(0,0,t.w,t.h);
-            ctx.strokeStyle="#543b2f";ctx.lineWidth=3;
-            ctx.strokeRect(2,2,t.w-4,t.h-4);
-          }
-        }else if(t.type==="platform"){
-          if(IMAGES.tiles.platform && IMAGES.tiles.platform.complete)
-            ctx.drawImage(IMAGES.tiles.platform,0,0,t.w,t.h);
-          else{
-            ctx.fillStyle="#ffe2a9";
-            ctx.fillRect(0,t.h/2,t.w,t.h/2);
-            ctx.strokeStyle="#543b2f";ctx.lineWidth=3;
-            ctx.strokeRect(2,t.h/2+1,t.w-4,t.h/2-2);
-          }
-        }else{
-          if(IMAGES.tiles.spike && IMAGES.tiles.spike.complete)
-            ctx.drawImage(IMAGES.tiles.spike,0,0,t.w,t.h);
-          else{
-            ctx.fillStyle="#ff4b5c";
-            ctx.beginPath();
-            ctx.moveTo(0,t.h);
-            ctx.lineTo(t.w*0.25,t.h*0.3);
-            ctx.lineTo(t.w*0.5,t.h);
-            ctx.lineTo(t.w*0.75,t.h*0.3);
-            ctx.lineTo(t.w,t.h);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle="#931824";ctx.lineWidth=3;
-            ctx.stroke();
-          }
-        }
-        ctx.restore();
-      }
-
-      const g=world.goal;
-      const gx=g.x-cameraX;
-      if(gx+g.w>=0&&gx<=WIDTH){
-        ctx.save();
-        ctx.translate(gx,g.y-TILE*0.5);
-        if(IMAGES.tiles.goal && IMAGES.tiles.goal.complete)
-          ctx.drawImage(IMAGES.tiles.goal,0,0,g.w,g.h*1.5);
-        else{
-          ctx.fillStyle="#ffffff";ctx.strokeStyle="#2b2620";ctx.lineWidth=3;
-          ctx.fillRect(8,0,g.w-16,g.h);
-          ctx.strokeRect(8,0,g.w-16,g.h);
-          ctx.fillStyle="#ffcc00";
-          ctx.fillText("G",g.w/2-4,g.h/2+4);
-          ctx.fillStyle="#71501b";
-          ctx.fillRect(g.w-8,0,6,g.h*1.5);
-        }
-        ctx.restore();
-      }
-    }
-
-    function drawSnacks(){
-      if(!world) return;
-      world.snacks.forEach(c=>{
-        if(c.collected) return;
-        const sx=c.x-cameraX,sy=c.y;
-        if(sx+c.w<0||sx>WIDTH) return;
-        ctx.save();
-        ctx.translate(sx+c.w/2,sy+c.h/2);
-        const bob=Math.sin(performance.now()/300+sx*0.02)*4;
-        ctx.translate(0,bob);
-        if(IMAGES.tiles.collectible && IMAGES.tiles.collectible.complete)
-          ctx.drawImage(IMAGES.tiles.collectible,-c.w/2,-c.h/2,c.w,c.h);
-        else{
-          ctx.fillStyle="#ffe066";
-          ctx.beginPath();
-          ctx.arc(0,0,c.w/2,0,Math.PI*2);
-          ctx.fill();
-          ctx.strokeStyle="#c49a00";ctx.lineWidth=3;
-          ctx.stroke();
-        }
-        ctx.restore();
-      });
-    }
-
-    function drawPowerups(){
-      if(!world) return;
-      world.powerups.forEach(p=>{
-        if(p.taken) return;
-        const sx=p.x-cameraX,sy=p.y;
-        if(sx+p.w<0||sx>WIDTH) return;
-        ctx.save();
-        ctx.translate(sx+p.w/2,sy+p.h/2);
-        const bob=Math.sin(performance.now()/350+sx*0.015)*4;
-        ctx.translate(0,bob);
-        if(p.kind==="heart"){
-          ctx.fillStyle="#ff4b5c";
-          ctx.beginPath();
-          ctx.moveTo(0,8);
-          ctx.bezierCurveTo(-12,-6,-8,-14,0,-6);
-          ctx.bezierCurveTo(8,-14,12,-6,0,8);
-          ctx.fill();
-          ctx.strokeStyle="#931824";ctx.lineWidth=2;
-          ctx.stroke();
-        }else{
-          ctx.fillStyle="#ffe066";
-          ctx.beginPath();
-          ctx.arc(0,0,p.w/2.2,0,Math.PI*2);
-          ctx.fill();
-          ctx.strokeStyle="#c49a00";ctx.lineWidth=3;
-          ctx.stroke();
-          ctx.fillStyle="#2b2620";
-          ctx.font="bold 14px system-ui";
-          ctx.textAlign="center";ctx.textBaseline="middle";
-          ctx.fillText("P",0,0);
-        }
-        ctx.restore();
-      });
-    }
-
-    function drawEnemies(){
-      if(!world) return;
-      world.enemies.forEach(e=>{
-        if(!e.alive) return;
-        const sx=e.x-cameraX,sy=e.y;
-        if(sx+e.w<0||sx>WIDTH) return;
-        ctx.save();
-        ctx.translate(sx,sy);
-        const squish=1+Math.sin(e.anim*6)*0.08;
-        ctx.translate(e.w/2,e.h/2);
-        ctx.scale(1,squish);
-        ctx.translate(-e.w/2,-e.h/2);
-        ctx.fillStyle=e.type==="flyer"?"#8be9fd":"#ff8b94";
-        ctx.strokeStyle="#2b2620";ctx.lineWidth=3;
-        ctx.beginPath();
-        ctx.roundRect(0,0,e.w,e.h,10);
-        ctx.fill();ctx.stroke();
-        ctx.fillStyle="#fff";
-        ctx.beginPath();
-        ctx.arc(e.w*0.35,e.h*0.35,4,0,Math.PI*2);
-        ctx.arc(e.w*0.65,e.h*0.35,4,0,Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle="#000";
-        ctx.beginPath();
-        ctx.arc(e.w*0.37,e.h*0.37,2,0,Math.PI*2);
-        ctx.arc(e.w*0.67,e.h*0.37,2,0,Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-      });
-    }
-
-    function drawBoss(){
-      if(!boss||boss.health<=0) return;
-      const sx=boss.x-cameraX,sy=boss.y;
-      if(sx+boss.w<0||sx>WIDTH) return;
-      ctx.save();
-      ctx.translate(sx,sy);
-      const bob=Math.sin(boss.anim*2)*4;
-      ctx.translate(0,bob);
-      const img=IMAGES.bosses[boss.id];
-      if(img && img.complete){
-        ctx.drawImage(img,0,0,boss.w,boss.h);
-      }else{
-        ctx.fillStyle="#d88cff";
-        ctx.strokeStyle="#2b2620";ctx.lineWidth=4;
-        ctx.beginPath();
-        ctx.roundRect(0,0,boss.w,boss.h,18);
-        ctx.fill();ctx.stroke();
-      }
-      const barW=boss.w,barH=10,ratio=boss.health/boss.maxHealth;
-      ctx.translate(0,-16);
-      ctx.fillStyle="#fff";
-      ctx.fillRect(0,0,barW,barH);
-      ctx.strokeStyle="#000";ctx.lineWidth=2;
-      ctx.strokeRect(0,0,barW,barH);
-      ctx.fillStyle="#ff4b5c";
-      ctx.fillRect(0,0,barW*ratio,barH);
-      ctx.restore();
-    }
-
-    function drawPlayer(){
-      if(!player) return;
-const sx=player.x-cameraX, sy=player.y;  
-
-Here is your **complete, clean `index.html`** with ultra‑easy TODO, scrolling platformer, JMAD intro, shop system, assets folder + MP3 slot, PC + mobile controls. Just copy this into a file called `index.html`.
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Snackventure</title>
-
-  <!--
-  ===========================
-  ULTRA-EASY TODO (BABY MODE)
-  ===========================
-
-  1) Save this file as:  index.html
-
-  2) In the SAME place, make a folder named:  assets
-
-     Your folder should look like:
-       Snackventure/
-         index.html
-         assets/
-
-  3) (Optional, for custom art) Put files into the assets folder
-     with THESE EXACT names. If you don't add them, the game
-     still works using built‑in shapes.
-
-       assets/music-main.mp3          <- background music
-
-       assets/hero-nacho-idle.png
-       assets/hero-nacho-run1.png
-       assets/hero-nacho-run2.png
-       assets/hero-nacho-jump.png
-
-       assets/hero-popcorn-idle.png
-       assets/hero-popcorn-run1.png
-       assets/hero-popcorn-run2.png
-       assets/hero-popcorn-jump.png
-
-       assets/hero-cheeto-idle.png
-       assets/hero-cheeto-run1.png
-       assets/hero-cheeto-run2.png
-       assets/hero-cheeto-jump.png
-
-       assets/boss-evil-kurkure.png
-       assets/boss-one-chip.png
-       assets/boss-taki-man.png
-
-       assets/tiles-ground.png
-       assets/tiles-platform.png
-       assets/spikes.png
-       assets/snack-collectible.png
-       assets/flag-goal.png
-       assets/bg-layer1.png    (optional background picture)
-
-  4) Double‑click index.html to play.
-     Later you can upload index.html + assets/ to GitHub Pages.
-  -->
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    :root {
-      --ink-dark: #2b2620;
-      --ink-light: #4a4136;
-      --accent-yellow: #ffc857;
-      --accent-orange: #ff7b3a;
-      --accent-red: #ff4b5c;
-      --accent-blue: #3c91e6;
-      --paper-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      --border-rough: 3px solid #2b2620;
-      --ui-radius: 14px;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at top, #fffaf0 0%, #f0e0c8 70%);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #game-shell {
-      position: relative;
-      width: 960px;
-      height: 600px;
-      max-width: 100vw;
-      max-height: 100vh;
-      background: repeating-linear-gradient(
-        135deg,
-        #fffdf7 0px,
-        #fffdf7 14px,
-        #f9f0dd 15px,
-        #f9f0dd 16px
-      );
-      border-radius: 24px;
-      border: 4px solid #2b2620;
-      box-shadow: var(--paper-shadow);
-      overflow: hidden;
-    }
-
-    #frame {
-      position: absolute;
-      inset: 12px;
-      border-radius: 20px;
-      border: 3px dashed rgba(0, 0, 0, 0.25);
-      overflow: hidden;
-      background: #fefaf4;
-    }
-
-    /* INTRO SCREEN (JMAD) */
-
-    #intro-screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at center, #ffffff 0%, #f4e4c4 70%);
-      z-index: 10;
-    }
-
-    #intro-logo {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 32px;
-      letter-spacing: 4px;
-      padding: 18px 26px;
-      border-radius: 18px;
-      border: 4px solid #2b2620;
-      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35);
-      background: linear-gradient(135deg, #ffaf40, #ff6f61);
-      color: #2b2620;
-      text-align: center;
-    }
-
-    #intro-sub {
-      margin-top: 10px;
-      font-size: 14px;
-      color: var(--ink-light);
-      text-align: center;
-    }
-
-    #intro-tap {
-      margin-top: 20px;
-      font-size: 13px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #fff7dc;
-      cursor: pointer;
-      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
-    }
-
-    /* GENERIC OVERLAY SCREENS */
-
-    .screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 18px;
-      background: radial-gradient(circle at top, rgba(255,255,255,0.97), rgba(248,242,233,0.97));
-      z-index: 5;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* MENU */
-
-    #logo-area {
-      width: 320px;
-      height: 110px;
-      border-radius: 18px;
-      border: 3px dashed rgba(0, 0, 0, 0.35);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: repeating-linear-gradient(
-        -45deg,
-        #fffdf7 0,
-        #fffdf7 8px,
-        #f7ecdd 9px,
-        #f7ecdd 10px
-      );
-      overflow: hidden;
-      text-align: center;
-      font-size: 18px;
-      color: var(--ink-light);
-    }
-
-    #menu-title {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 32px;
-      letter-spacing: 2px;
-      text-shadow: 2px 2px 0 #ffe4a0;
-      margin-bottom: 4px;
-    }
-
-    #menu-subtitle {
-      font-size: 13px;
-      color: var(--ink-light);
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    #character-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-
-    .char-card {
-      width: 175px;
-      height: 200px;
-      border-radius: var(--ui-radius);
-      border: var(--border-rough);
-      background: #fffaf4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 8px;
-      position: relative;
-      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
-      cursor: pointer;
-      transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-    }
-
-    .char-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.24);
-    }
-
-    .char-card.selected {
-      outline: 3px solid var(--accent-blue);
-    }
-
-    .char-card.locked {
-      filter: grayscale(0.7);
-      cursor: default;
-    }
-
-    .char-lock {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 2px solid rgba(0, 0, 0, 0.7);
-      background: rgba(0,0,0,0.05);
-    }
-
-    .sprite-box {
-      width: 90px;
-      height: 90px;
-      border-radius: 12px;
-      border: 2px dashed rgba(0, 0, 0, 0.4);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      text-align: center;
-      background: #fff;
-      overflow: hidden;
-    }
-
-    .char-name {
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .char-desc {
-      font-size: 11px;
-      text-align: center;
-      color: var(--ink-light);
-    }
-
-    #menu-bottom {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .pill {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 2px solid rgba(0, 0, 0, 0.7);
-      background: #fffaf2;
-    }
-
-    .btn-main {
-      padding: 7px 16px;
-      border-radius: 18px;
-      border: 3px solid #2b2620;
-      background: var(--accent-orange);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
-    }
-
-    #shop-button { background: var(--accent-yellow); }
-
-    .btn-main:disabled {
-      filter: grayscale(0.7);
-      cursor: default;
-      box-shadow: none;
-    }
-
-    #wallet-label {
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--ink-light);
-    }
-
-    /* SHOP */
-
-    #shop-title {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 26px;
-      margin-bottom: 4px;
-    }
-
-    #shop-wallet {
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    #shop-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 8px;
-    }
-
-    .shop-item {
-      width: 190px;
-      border-radius: 16px;
-      border: var(--border-rough);
-      background: #fffef6;
-      padding: 8px;
-      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-      font-size: 12px;
-    }
-
-    .shop-heading { font-weight: 700; margin-bottom: 2px; }
-    .shop-price { font-size: 11px; margin-bottom: 2px; }
-    .shop-desc { font-size: 11px; color: var(--ink-light); margin-bottom: 4px; }
-
-    .shop-btn {
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #ffe3a3;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .shop-btn:disabled {
-      filter: grayscale(0.7);
-      cursor: default;
-      box-shadow: none;
-    }
-
-    /* HUD */
-
-    #hud {
-      position: absolute;
-      top: 8px;
-      left: 12px;
-      right: 12px;
-      height: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 2px solid rgba(0, 0, 0, 0.6);
-      background: rgba(255, 252, 244, 0.9);
-      font-size: 11px;
-      z-index: 2;
-    }
-
-    .hud-row { display: flex; gap: 8px; align-items: center; }
-
-    .hud-tag {
-      padding: 2px 7px;
-      border-radius: 999px;
-      border: 2px solid rgba(0,0,0,0.7);
-      background: #fff6e5;
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    .health-heart {
-      width: 12px;
-      height: 12px;
-      border-radius: 50% 50% 50% 0;
-      background: var(--accent-red);
-      transform: rotate(-45deg);
-      position: relative;
-    }
-
-    .health-heart::before,
-    .health-heart::after {
-      content: "";
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--accent-red);
-    }
-
-    .health-heart::before { left: 6px; top: 0; }
-    .health-heart::after  { left: 0; top: -6px; }
-
-    /* OVERLAY (PAUSE, GAME OVER, ETC) */
-
-    #overlay-screen { justify-content: center; }
-    #overlay-card {
-      width: 380px;
-      max-width: 90%;
-      border-radius: 20px;
-      border: var(--border-rough);
-      background: #fffaf2;
-      box-shadow: var(--paper-shadow);
-      padding: 16px 18px;
-      text-align: center;
-    }
-
-    #overlay-title {
-      font-family: "Comic Sans MS", "Marker Felt", system-ui;
-      font-size: 22px;
-      margin-bottom: 4px;
-    }
-
-    #overlay-text { font-size: 13px; margin-bottom: 10px; }
-
-    #overlay-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-small {
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 2px solid #2b2620;
-      background: #ffe3a3;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    /* CANVAS */
-
-    #game-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: #b7e0ff;
-      image-rendering: pixelated;
-      touch-action: none;
-      z-index: 1;
-    }
-
-    #pause-hint {
-      position: absolute;
-      right: 14px;
-      bottom: 70px;
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.85);
-      border: 2px solid rgba(0,0,0,0.4);
-      z-index: 2;
-    }
-
-    /* TOUCH CONTROLS */
-
-    #touch-controls {
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 8px;
-      height: 56px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .touch-group { display: flex; gap: 6px; }
-
-    .touch-btn {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      border: 3px solid #2b2620;
-      background: rgba(255,255,255,0.9);
-      box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: 700;
-      pointer-events: auto;
-      touch-action: none;
-    }
-
-    audio { display: none; }
-  </style>
-</head>
-<body>
-  <div id="game-shell">
-    <div id="frame">
-
-      <!-- INTRO -->
-      <div id="intro-screen">
-        <div id="intro-logo">JMAD PRODUCTIONS</div>
-        <div id="intro-sub">Presents: Snackventure – The Snack Cinematic Universe Game</div>
-        <button id="intro-tap">Tap / Click to Continue</button>
+    <div id="menu" class="screen hidden">
+      <div id="logo-area">Snackventure logo goes here</div>
+      <div id="menu-title">Snackventure</div>
+      <div id="menu-sub">Scroll, jump and snack your way through the Snack Cinematic Universe.</div>
+      <div id="char-grid">
+        <button class="card" data-char="nacho">
+          <div class="sprite-box">Nacho sprite</div>
+          <div class="card-name">Nacho Man</div>
+          <div class="card-desc">Ex-miner powered by a glowing gem. Balanced hero.</div>
+        </button>
+        <button class="card locked" data-char="popcorn">
+          <div class="lock-tag">LOCKED</div>
+          <div class="sprite-box">Popcorn sprite</div>
+          <div class="card-name">Popcorn Man</div>
+          <div class="card-desc">Arsenal hero. Floaty jumps.</div>
+        </button>
+        <button class="card locked" data-char="cheeto">
+          <div class="lock-tag">LOCKED</div>
+          <div class="sprite-box">Cheeto sprite</div>
+          <div class="card-name">Cheeto Man</div>
+          <div class="card-desc">No powers, just insane strength and speed.</div>
+        </button>
       </div>
-
-      <!-- MENU -->
-      <div id="menu-screen" class="screen hidden">
-        <div id="logo-area">
-          Snackventure logo image can go here later.
-        </div>
-        <div id="menu-title">Snackventure</div>
-        <div id="menu-subtitle">
-          Scroll, jump and snack your way through the Snack Cinematic Universe.
-        </div>
-
-        <div id="character-grid">
-          <!-- Nacho (always unlocked) -->
-          <button class="char-card" data-char="nacho">
-            <div class="sprite-box">Nacho sprite</div>
-            <div class="char-name">Nacho Man</div>
-            <div class="char-desc">
-              Ex‑miner powered by a glowing gem. Balanced hero.
-            </div>
-          </button>
-
-          <!-- Popcorn (shop unlock) -->
-          <button class="char-card locked" data-char="popcorn">
-            <div class="char-lock">LOCKED</div>
-            <div class="sprite-box">Popcorn sprite</div>
-            <div class="char-name">Popcorn Man</div>
-            <div class="char-desc">
-              Arsenal popcorn with katanas & gum gun. Floaty jumps.
-            </div>
-          </button>
-
-          <!-- Cheeto (shop unlock) -->
-          <button class="char-card locked" data-char="cheeto">
-            <div class="char-lock">LOCKED</div>
-            <div class="sprite-box">Cheeto sprite</div>
-            <div class="char-name">Cheeto Man</div>
-            <div class="char-desc">
-              No powers, just insane strength and speed.
-            </div>
-          </button>
-        </div>
-
-        <div id="menu-bottom">
-          <span class="pill">PC: ← → / A D move -  Space / W / ↑ jump</span>
-          <span class="pill">Mobile: use the buttons at the bottom</span>
-          <button id="shop-button" class="btn-main">Shop</button>
-          <button id="start-button" class="btn-main" disabled>Start Adventure</button>
-        </div>
-
-        <div id="wallet-label">Total snacks (coins): <span id="wallet-amount">0</span></div>
+      <div id="menu-btns">
+        <span class="pill">PC: A D or Arrow Keys to move, Space / W / Up to jump</span>
+        <span class="pill">Mobile: buttons at bottom</span>
+        <button id="shop-btn" class="btn yellow">Shop</button>
+        <button id="start-btn" class="btn orange" disabled>Start Adventure</button>
       </div>
-
-      <!-- SHOP -->
-      <div id="shop-screen" class="screen hidden">
-        <div id="shop-title">Snack Shop</div>
-        <div id="shop-wallet">Your snacks: <span id="shop-snacks">0</span></div>
-
-        <div id="shop-grid">
-          <div class="shop-item">
-            <div class="shop-heading">Unlock Popcorn Man</div>
-            <div class="shop-price">Cost: 60 snacks</div>
-            <div class="shop-desc">
-              Floaty hero with easier jumps. Origin secret (for now).
-            </div>
-            <button id="buy-popcorn" class="shop-btn">Buy Popcorn Man</button>
-          </div>
-
-          <div class="shop-item">
-            <div class="shop-heading">Unlock Cheeto Man</div>
-            <div class="shop-price">Cost: 80 snacks</div>
-            <div class="shop-desc">
-              Lucky cheeto with extreme strength and speed. Hard mode.
-            </div>
-            <button id="buy-cheeto" class="shop-btn">Buy Cheeto Man</button>
-          </div>
-
-          <div class="shop-item">
-            <div class="shop-heading">Extra Heart</div>
-            <div class="shop-price">Cost: 40 snacks</div>
-            <div class="shop-desc">
-              Permanently +1 max health for every hero.
-            </div>
-            <button id="buy-heart" class="shop-btn">Buy Extra Heart</button>
-          </div>
-
-          <div class="shop-item">
-            <div class="shop-heading">Power Snack Booster</div>
-            <div class="shop-price">Cost: 50 snacks</div>
-            <div class="shop-desc">
-              Start each level with a short speed + jump buff.
-            </div>
-            <button id="buy-buff" class="shop-btn">Buy Booster</button>
-          </div>
-        </div>
-
-        <button id="shop-back" class="btn-small">Back to Menu</button>
-      </div>
-
-      <!-- HUD -->
-      <div id="hud">
-        <div class="hud-row">
-          <div class="hud-tag"><strong>Hero:</strong> <span id="hud-hero">None</span></div>
-          <div class="hud-tag"><strong>Villain:</strong> <span id="hud-villain">–</span></div>
-          <div class="hud-tag"><strong>Level:</strong> <span id="hud-level">–</span></div>
-        </div>
-        <div class="hud-row">
-          <div class="hud-tag"><strong>Health:</strong> <span id="hud-hearts"></span></div>
-          <div class="hud-tag"><strong>Run snacks:</strong> <span id="hud-run-snacks">0</span></div>
-          <div class="hud-tag"><strong>Total:</strong> <span id="hud-bank">0</span></div>
-        </div>
-      </div>
-
-      <div id="pause-hint">Esc = Pause -  R = Restart level</div>
-
-      <!-- OVERLAY -->
-      <div id="overlay-screen" class="screen hidden">
-        <div id="overlay-card">
-          <div id="overlay-title">Paused</div>
-          <div id="overlay-text">Take a break, snack hero.</div>
-          <div id="overlay-buttons">
-            <button id="btn-resume" class="btn-small">Resume</button>
-            <button id="btn-restart" class="btn-small">Restart Level</button>
-            <button id="btn-back-menu" class="btn-small">Back to Menu</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CANVAS -->
-      <canvas id="game-canvas" width="960" height="540"></canvas>
-
-      <!-- TOUCH CONTROLS -->
-      <div id="touch-controls">
-        <div class="touch-group">
-          <button class="touch-btn" data-action="left">◀</button>
-          <button class="touch-btn" data-action="right">▶</button>
-        </div>
-        <div class="touch-group">
-          <button class="touch-btn" data-action="jump">⬆</button>
-        </div>
-      </div>
-
-      <!-- MUSIC -->
-      <audio id="bg-music" src="assets/music-main.mp3" loop></audio>
+      <div id="wallet-lbl">Total snacks: <span id="wallet">0</span></div>
     </div>
+
+    <div id="shop" class="screen hidden">
+      <div id="shop-title">Snack Shop</div>
+      <div id="shop-wallet">Your snacks: <span id="shop-coins">0</span></div>
+      <div id="shop-grid">
+        <div class="shop-item">
+          <div class="sh">Unlock Popcorn Man</div>
+          <div class="sp">Cost: 60 snacks</div>
+          <div class="sd">Floaty jumps, easier control.</div>
+          <button id="buy-popcorn" class="sbtn">Buy</button>
+        </div>
+        <div class="shop-item">
+          <div class="sh">Unlock Cheeto Man</div>
+          <div class="sp">Cost: 80 snacks</div>
+          <div class="sd">Super fast, high-skill hero.</div>
+          <button id="buy-cheeto" class="sbtn">Buy</button>
+        </div>
+        <div class="shop-item">
+          <div class="sh">Extra Heart</div>
+          <div class="sp">Cost: 40 snacks</div>
+          <div class="sd">Permanently +1 max health.</div>
+          <button id="buy-heart" class="sbtn">Buy</button>
+        </div>
+        <div class="shop-item">
+          <div class="sh">Power Snack Booster</div>
+          <div class="sp">Cost: 50 snacks</div>
+          <div class="sd">Start each level with a speed+jump buff.</div>
+          <button id="buy-buff" class="sbtn">Buy</button>
+        </div>
+      </div>
+      <button id="shop-back" class="sbtn2">Back to Menu</button>
+    </div>
+
+    <div id="hud">
+      <div class="hrow">
+        <div class="htag"><strong>Hero:</strong> <span id="hud-hero">None</span></div>
+        <div class="htag"><strong>Villain:</strong> <span id="hud-villain">-</span></div>
+        <div class="htag"><strong>Level:</strong> <span id="hud-level">-</span></div>
+      </div>
+      <div class="hrow">
+        <div class="htag"><strong>HP:</strong> <span id="hud-hearts"></span></div>
+        <div class="htag"><strong>Snacks:</strong> <span id="hud-score">0</span></div>
+        <div class="htag"><strong>Total:</strong> <span id="hud-bank">0</span></div>
+      </div>
+    </div>
+
+    <div id="pause-hint">Esc = Pause | R = Restart</div>
+
+    <div id="overlay" class="screen hidden">
+      <div id="ov-card">
+        <div id="ov-title">Paused</div>
+        <div id="ov-text">Take a break, snack hero.</div>
+        <div id="ov-btns">
+          <button id="btn-resume" class="sbtn2">Resume</button>
+          <button id="btn-restart" class="sbtn2">Restart Level</button>
+          <button id="btn-menu" class="sbtn2">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="game-canvas" width="960" height="540"></canvas>
+
+    <div id="touch-ctrls">
+      <div class="tgrp">
+        <button class="tbtn" data-action="left">&#9664;</button>
+        <button class="tbtn" data-action="right">&#9654;</button>
+      </div>
+      <div class="tgrp">
+        <button class="tbtn" data-action="jump">&#11014;</button>
+      </div>
+    </div>
+
+    <audio id="bgm" src="assets/music-main.mp3" loop></audio>
+
   </div>
+</div>
+<script>
+(function(){
+  var canvas = document.getElementById("game-canvas");
+  var ctx = canvas.getContext("2d");
+  var W = canvas.width;
+  var H = canvas.height;
+  var TILE = 48;
+  var GRAV = 52;
+  var bgm = document.getElementById("bgm");
+  var state = "intro";
+  var keys = {};
+  var ctrl = {left:false,right:false,jump:false};
 
-  <script>
-  window.addEventListener("load", () => {
-    /** BASIC SETUP **/
-    const canvas = document.getElementById("game-canvas");
-    const ctx = canvas.getContext("2d");
-    const WIDTH = canvas.width;
-    const HEIGHT = canvas.height;
-    const TILE = 48;
-    const GRAVITY = 52;
+  var HEROES = {
+    nacho:   {name:"Nacho Man",   spd:6.0, jmp:15.5, col:"#ffb347"},
+    popcorn: {name:"Popcorn Man", spd:5.4, jmp:16.5, col:"#ffe97f"},
+    cheeto:  {name:"Cheeto Man",  spd:7.5, jmp:15.0, col:"#ffd45a"}
+  };
+  var VILLAINS = {
+    nacho:   {id:"evilKurkure", name:"Evil Kurkure"},
+    popcorn: {id:"oneChip",     name:"The One Chip"},
+    cheeto:  {id:"takiMan",     name:"Taki Man"}
+  };
 
-    const bgMusic = document.getElementById("bg-music");
+  function mkImg(s){var i=new Image();i.src=s;return i;}
+  var IMGS = {
+    heroes:{
+      nacho:  {idle:mkImg("assets/hero-nacho-idle.png"),  run1:mkImg("assets/hero-nacho-run1.png"),  run2:mkImg("assets/hero-nacho-run2.png"),  jump:mkImg("assets/hero-nacho-jump.png")},
+      popcorn:{idle:mkImg("assets/hero-popcorn-idle.png"),run1:mkImg("assets/hero-popcorn-run1.png"),run2:mkImg("assets/hero-popcorn-run2.png"),jump:mkImg("assets/hero-popcorn-jump.png")},
+      cheeto: {idle:mkImg("assets/hero-cheeto-idle.png"), run1:mkImg("assets/hero-cheeto-run1.png"), run2:mkImg("assets/hero-cheeto-run2.png"), jump:mkImg("assets/hero-cheeto-jump.png")}
+    },
+    bosses:{evilKurkure:mkImg("assets/boss-evil-kurkure.png"),oneChip:mkImg("assets/boss-one-chip.png"),takiMan:mkImg("assets/boss-taki-man.png")},
+    tiles:{ground:mkImg("assets/tiles-ground.png"),plat:mkImg("assets/tiles-platform.png"),spike:mkImg("assets/spikes.png"),snack:mkImg("assets/snack-collectible.png"),goal:mkImg("assets/flag-goal.png")},
+    bg:mkImg("assets/bg-layer1.png")
+  };
 
-    let lastTime = 0;
-    let gameState = "intro"; // intro | menu | playing | paused | level-complete | game-over | boss-defeated
-    const keys = {};
-    const controls = { left: false, right: false, jump: false };
+  var LEVELS = [
+    {name:"1 - Nacho Mines",rows:["........................","........................","......C.................","..................C.....","........................","....C...e...............","........................","S#####............###G..","########################","########################","########################"]},
+    {name:"2 - Snack Hills",rows:["........................","........................","....C............C......",".....---...............G","........................","....C......e....C.......","..........#####.........","S#####..................","########################","########################","########################"]},
+    {name:"3 - Flying Snackway",rows:["........................","..........f.............","........................",".....---.....---........","........................","..C....H..........C.....","........................","S#####.............##G..","########################","########################","########################"]},
+    {name:"4 - Power Snack Lab",rows:["........................","........................",".....H..................","..........P.............","........................","....e...............C...","..........---...........","S#####..........#####.G.","########################","########################","########################"]},
+    {name:"5 - Final Crunch",rows:["........................","........................","........................","........................",".....C..................","...........B............","........................","S#####.............##G..","########################","########################","########################"]}
+  ];
 
-    /** DOM **/
-    const introScreen = document.getElementById("intro-screen");
-    const introTap = document.getElementById("intro-tap");
-    const menuScreen = document.getElementById("menu-screen");
-    const shopScreen = document.getElementById("shop-screen");
-    const overlayScreen = document.getElementById("overlay-screen");
+  var world=null,player=null,boss=null,camX=0;
+  var curLevel=0,snackBank=0;
+  var unlocked={nacho:true,popcorn:false,cheeto:false};
+  var extraHeart=false,buffBooster=false;
+  var selHero=null,selVillain=null;
+  var lastT=0;
 
-    const startButton = document.getElementById("start-button");
-    const shopButton = document.getElementById("shop-button");
-    const charCards = Array.from(document.querySelectorAll(".char-card"));
+  function Tile(x,y,t){this.x=x;this.y=y;this.w=TILE;this.h=TILE;this.t=t;}
+  function Snack(x,y){this.x=x;this.y=y;this.w=TILE*0.6;this.h=TILE*0.6;this.got=false;}
+  function Pow(x,y,k){this.x=x;this.y=y;this.w=TILE*0.7;this.h=TILE*0.7;this.k=k;this.got=false;}
+  function Enemy(x,y,t){
+    this.x=x;this.y=y;this.w=TILE*0.8;this.h=TILE*0.8;
+    this.t=t;this.vx=t==="walker"?2.2:-2;this.vy=0;
+    this.bx=x;this.by=y;this.pat=3*TILE;this.alive=true;this.a=0;this.og=false;
+  }
+  function Boss(x,y,id){
+    this.x=x;this.y=y;this.w=TILE*2;this.h=TILE*2;
+    this.id=id;this.vx=2.4;this.vy=0;this.hp=6;this.mhp=6;
+    this.dir=1;this.og=false;this.a=0;this.phase=1;
+  }
+  function Player(x,y,k){
+    this.x=x;this.y=y;this.w=TILE*0.8;this.h=TILE*0.9;
+    this.vx=0;this.vy=0;this.og=false;
+    this.k=k;this.col=HEROES[k].col;
+    this.spd=HEROES[k].spd;this.jmp=HEROES[k].jmp;
+    this.hp=3;this.mhp=3;this.score=0;
+    this.face=1;this.st="idle";this.a=0;this.inv=0;this.buff=0;
+  }
 
-    const walletAmount = document.getElementById("wallet-amount");
-    const shopSnacks = document.getElementById("shop-snacks");
-    const shopBack = document.getElementById("shop-back");
-    const buyPopcorn = document.getElementById("buy-popcorn");
-    const buyCheeto = document.getElementById("buy-cheeto");
-    const buyHeart = document.getElementById("buy-heart");
-    const buyBuff = document.getElementById("buy-buff");
-
-    const hudHero = document.getElementById("hud-hero");
-    const hudVillain = document.getElementById("hud-villain");
-    const hudLevel = document.getElementById("hud-level");
-    const hudHearts = document.getElementById("hud-hearts");
-    const hudRunSnacks = document.getElementById("hud-run-snacks");
-    const hudBank = document.getElementById("hud-bank");
-
-    const btnResume = document.getElementById("btn-resume");
-    const btnRestart = document.getElementById("btn-restart");
-    const btnBackMenu = document.getElementById("btn-back-menu");
-
-    const touchBtns = Array.from(document.querySelectorAll(".touch-btn"));
-
-    /** HERO / VILLAIN CONFIG **/
-    const HERO = {
-      nacho: { name: "Nacho Man", speed: 6.0, jump: 15.5, color: "#ffb347" },
-      popcorn: { name: "Popcorn Man", speed: 5.4, jump: 16.5, color: "#ffe97f" },
-      cheeto: { name: "Cheeto Man", speed: 7.5, jump: 15.0, color: "#ffd45a" }
-    };
-
-    const VILLAIN = {
-      nacho: { id: "evilKurkure", name: "Evil Kurkure" },
-      popcorn: { id: "oneChip", name: "The One Chip" },
-      cheeto: { id: "takiMan", name: "Taki Man" }
-    };
-
-    /** IMAGES (OPTIONAL) **/
-    function img(path) { const i = new Image(); i.src = path; return i; }
-
-    const IMAGES = {
-      heroes: {
-        nacho: {
-          idle: img("assets/hero-nacho-idle.png"),
-          run1: img("assets/hero-nacho-run1.png"),
-          run2: img("assets/hero-nacho-run2.png"),
-          jump: img("assets/hero-nacho-jump.png")
-        },
-        popcorn: {
-          idle: img("assets/hero-popcorn-idle.png"),
-          run1: img("assets/hero-popcorn-run1.png"),
-          run2: img("assets/hero-popcorn-run2.png"),
-          jump: img("assets/hero-popcorn-jump.png")
-        },
-        cheeto: {
-          idle: img("assets/hero-cheeto-idle.png"),
-          run1: img("assets/hero-cheeto-run1.png"),
-          run2: img("assets/hero-cheeto-run2.png"),
-          jump: img("assets/hero-cheeto-jump.png")
-        }
-      },
-      bosses: {
-        evilKurkure: img("assets/boss-evil-kurkure.png"),
-        oneChip: img("assets/boss-one-chip.png"),
-        takiMan: img("assets/boss-taki-man.png")
-      },
-      tiles: {
-        ground: img("assets/tiles-ground.png"),
-        platform: img("assets/tiles-platform.png"),
-        spike: img("assets/spikes.png"),
-        snack: img("assets/snack-collectible.png"),
-        goal: img("assets/flag-goal.png")
-      },
-      bg: img("assets/bg-layer1.png")
-    };
-
-    /** LEVELS **/
-    /*
-      . empty
-      # ground
-      - platform
-      ^ spike
-      C snack
-      e walking enemy
-      f flying enemy
-      H heart
-      P buff
-      S start
-      G goal
-      B boss
-    */
-    const LEVELS = [
-      {
-        name: "1 - Nacho Mines",
-        rows: [
-          "........................",
-          "........................",
-          "......C.................",
-          "..................C.....",
-          "........................",
-          "....C...e...............",
-          "........................",
-          "S#####............###G..",
-          "########################",
-          "########################",
-          "########################"
-        ]
-      },
-      {
-        name: "2 - Snack Hills",
-        rows: [
-          "........................",
-          "........................",
-          "....C............C......",
-          ".....---...............G",
-          "........................",
-          "....C......e....C.......",
-          "..........#####.........",
-          "S#####..................",
-          "########################",
-          "########################",
-          "########################"
-        ]
-      },
-      {
-        name: "3 - Flying Snackway",
-        rows: [
-          "........................",
-          "..........f.............",
-          "........................",
-          ".....---.....---........",
-          "........................",
-          "..C....H..........C.....",
-          "........................",
-          "S#####.............##G..",
-          "########################",
-          "########################",
-          "########################"
-        ]
-      },
-      {
-        name: "4 - Power Snack Lab",
-        rows: [
-          "........................",
-          "........................",
-          ".....H..................",
-          "..........P.............",
-          "........................",
-          "....e...............C...",
-          "..........---...........",
-          "S#####..........#####.G.",
-          "########################",
-          "########################",
-          "########################"
-        ]
-      },
-      {
-        name: "5 - Final Crunch",
-        rows: [
-          "........................",
-          "........................",
-          "........................",
-          "........................",
-          ".....C..................",
-          "...........B............",
-          "........................",
-          "S#####.............##G..",
-          "########################",
-          "########################",
-          "########################"
-        ]
-      }
-    ];
-
-    /** WORLD CLASSES **/
-    class Tile { constructor(x,y,type){this.x=x;this.y=y;this.w=TILE;this.h=TILE;this.type=type;} }
-    class Snack { constructor(x,y){this.x=x;this.y=y;this.w=TILE*0.6;this.h=TILE*0.6;this.collected=false;} }
-    class Power { constructor(x,y,kind){this.x=x;this.y=y;this.w=TILE*0.7;this.h=TILE*0.7;this.kind=kind;this.taken=false;} }
-    class Enemy {
-      constructor(x,y,type){
-        this.x=x;this.y=y;this.w=TILE*0.8;this.h=TILE*0.8;
-        this.type=type;this.vx=type==="walker"?2.2:-2;this.vy=0;
-        this.baseX=x;this.baseY=y;this.patrol=3*TILE;this.alive=true;this.anim=0;this.onGround=false;
+  function buildLevel(i){
+    var lvl=LEVELS[i];var rows=lvl.rows;
+    var ground=[],plats=[],spikes=[],snacks=[],enemies=[],pows=[];
+    var sx=0,sy=0,goal={x:0,y:0,w:TILE,h:TILE},bspawn=null;
+    for(var r=0;r<rows.length;r++){
+      var line=rows[r];
+      for(var c=0;c<line.length;c++){
+        var ch=line[c];var x=c*TILE;var y=r*TILE;
+        if(ch==="#") ground.push(new Tile(x,y,"ground"));
+        else if(ch==="-") plats.push(new Tile(x,y,"plat"));
+        else if(ch==="^") spikes.push(new Tile(x,y,"spike"));
+        else if(ch==="C") snacks.push(new Snack(x+TILE*0.2,y+TILE*0.2));
+        else if(ch==="e") enemies.push(new Enemy(x+TILE*0.1,y+TILE*0.2,"walker"));
+        else if(ch==="f") enemies.push(new Enemy(x+TILE*0.1,y+TILE*0.2,"flyer"));
+        else if(ch==="H") pows.push(new Pow(x+TILE*0.15,y+TILE*0.15,"heart"));
+        else if(ch==="P") pows.push(new Pow(x+TILE*0.15,y+TILE*0.15,"buff"));
+        else if(ch==="S"){sx=x+TILE*0.2;sy=y-TILE*0.2;}
+        else if(ch==="G"){goal={x:x+TILE*0.1,y:y,w:TILE*0.8,h:TILE};}
+        else if(ch==="B"){bspawn={x:x+TILE*0.1,y:y-TILE};}
       }
     }
-    class Boss {
-      constructor(x,y,id){
-        this.x=x;this.y=y;this.w=TILE*2;this.h=TILE*2;
-        this.id=id;this.vx=2.4;this.vy=0;this.health=6;this.maxHealth=6;
-        this.dir=1;this.onGround=false;this.anim=0;this.phase=1;
+    world={ground:ground,plats:plats,spikes:spikes,snacks:snacks,enemies:enemies,pows:pows,goal:goal,bspawn:bspawn,w:rows[0].length*TILE,h:rows.length*TILE,name:lvl.name};
+    boss=null;
+    if(i===LEVELS.length-1&&bspawn&&selVillain) boss=new Boss(bspawn.x,bspawn.y,selVillain.id);
+    player.x=sx;player.y=sy;player.vx=0;player.vy=0;player.score=0;
+    player.mhp=extraHeart?4:3;player.hp=player.mhp;
+    if(buffBooster) player.buff=3;
+    camX=0;
+  }
+
+  function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+  function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
+
+  function resolve(ent,solids,plats,axis){
+    var i,t;
+    for(i=0;i<solids.length;i++){
+      t=solids[i];
+      if(!hit(ent,t)) continue;
+      if(axis==="x"){
+        if(ent.vx>0) ent.x=t.x-ent.w;
+        else if(ent.vx<0) ent.x=t.x+t.w;
+        ent.vx=0;
+      } else {
+        if(ent.vy>0){ent.y=t.y-ent.h;ent.vy=0;ent.og=true;}
+        else if(ent.vy<0){ent.y=t.y+t.h;ent.vy=0;}
       }
     }
-    class Player {
-      constructor(x,y,key){
-        this.x=x;this.y=y;this.w=TILE*0.8;this.h=TILE*0.9;
-        this.vx=0;this.vy=0;this.onGround=false;
-        this.key=key;this.color=HERO[key].color;
-        this.speed=HERO[key].speed;this.jump=HERO[key].jump;
-        this.health=3;this.maxHealth=3;
-        this.score=0;this.facing=1;this.state="idle";this.anim=0;
-        this.inv=0;this.buff=0;
-      }
-    }
-
-    /** GAME STATE **/
-    let currentLevel = 0;
-    let world = null;
-    let player = null;
-    let boss = null;
-    let selectedHero = null;
-    let selectedVillain = null;
-    let cameraX = 0;
-
-    let snackBank = 0;
-    const unlocked = { nacho: true, popcorn: false, cheeto: false };
-    let extraHeart = false;
-    let buffBooster = false;
-
-    /** BUILD LEVEL **/
-    function buildLevel(index){
-      const level = LEVELS[index];
-      const rows = level.rows;
-
-      const ground=[], plats=[], spikes=[], snacks=[], enemies=[], powers=[];
-      let startX=0,startY=0;
-      let goal={x:0,y:0,w:TILE,h:TILE};
-      let bossSpawn=null;
-
-      for(let r=0;r<rows.length;r++){
-        const line=rows[r];
-        for(let c=0;c<line.length;c++){
-          const ch=line[c];
-          const x=c*TILE, y=r*TILE;
-          if(ch==="#") ground.push(new Tile(x,y,"ground"));
-          else if(ch==="-") plats.push(new Tile(x,y,"plat"));
-          else if(ch==="^") spikes.push(new Tile(x,y,"spike"));
-          else if(ch==="C") snacks.push(new Snack(x+TILE*0.2,y+TILE*0.2));
-          else if(ch==="e") enemies.push(new Enemy(x+TILE*0.1,y+TILE*0.2,"walker"));
-          else if(ch==="f") enemies.push(new Enemy(x+TILE*0.1,y+TILE*0.2,"flyer"));
-          else if(ch==="H") powers.push(new Power(x+TILE*0.15,y+TILE*0.15,"heart"));
-          else if(ch==="P") powers.push(new Power(x+TILE*0.15,y+TILE*0.15,"buff"));
-          else if(ch==="S"){startX=x+TILE*0.2;startY=y-TILE*0.2;}
-          else if(ch==="G"){goal={x:x+TILE*0.1,y, w:TILE*0.8,h:TILE};}
-          else if(ch==="B"){bossSpawn={x:x+TILE*0.1,y:y-TILE};}
-        }
-      }
-
-      world={
-        ground,plats,spikes,snacks,enemies,powers,goal,
-        width:rows.length*TILE,
-        height:rows.length*TILE,
-        name:level.name,
-        bossSpawn
-      };
-
-      boss=null;
-      if(index===LEVELS.length-1 && bossSpawn && selectedVillain){
-        boss=new Boss(bossSpawn.x,bossSpawn.y,selectedVillain.id);
-      }
-
-      player.x=startX;player.y=startY;
-      player.vx=0;player.vy=0;player.score=0;
-
-      player.maxHealth=extraHeart?4:3;
-      player.health=player.maxHealth;
-      if(buffBooster) player.buff=3;
-
-      cameraX=0;
-    }
-
-    /** INPUT **/
-    window.addEventListener("keydown",e=>{
-      keys[e.key]=true;
-      if(e.key==="Escape"){
-        if(gameState==="playing") setPause(true);
-        else if(gameState==="paused") setPause(false);
-      }
-      if((e.key==="r"||e.key==="R") && gameState==="playing") restartLevel();
-    });
-    window.addEventListener("keyup",e=>{ keys[e.key]=false; });
-
-    function updateControlsFromKeyboard(){
-      controls.left = !!(keys["ArrowLeft"]||keys["a"]||keys["A"]);
-      controls.right= !!(keys["ArrowRight"]||keys["d"]||keys["D"]);
-      controls.jump = !!(keys["ArrowUp"]||keys["w"]||keys["W"]||keys[" "]);
-    }
-
-    touchBtns.forEach(btn=>{
-      const act=btn.dataset.action;
-      btn.addEventListener("pointerdown",e=>{e.preventDefault();controls[act]=true;});
-      btn.addEventListener("pointerup",e=>{e.preventDefault();controls[act]=false;});
-      btn.addEventListener("pointerleave",e=>{e.preventDefault();controls[act]=false;});
-      btn.addEventListener("pointercancel",e=>{e.preventDefault();controls[act]=false;});
-    });
-
-    /** COLLISIONS **/
-    function aabb(a,b){
-      return a.x<a.y+999 && // dummy to avoid minification confusion
-        a.x < b.x + b.w &&
-        a.x + a.w > b.x &&
-        a.y < b.y + b.h &&
-        a.y + a.h > b.y;
-    }
-    function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-
-    function resolve(entity, solids, plats, axis){
-      for(const t of solids){
-        if(!(
-          entity.x < t.x + t.w &&
-          entity.x + entity.w > t.x &&
-          entity.y < t.y + t.h &&
-          entity.y + entity.h > t.y
-        )) continue;
-
-        if(axis==="x"){
-          if(entity.vx>0) entity.x=t.x-entity.w;
-          else if(entity.vx<0) entity.x=t.x+t.w;
-          entity.vx=0;
-        }else{
-          if(entity.vy>0){
-            entity.y=t.y-entity.h;
-            entity.vy=0;
-            entity.onGround=true;
-          }else if(entity.vy<0){
-            entity.y=t.y+t.h;
-            entity.vy=0;
-          }
-        }
-      }
-
-      if(axis==="y" && entity.vy>=0){
-        for(const p of plats){
-          const eps=4;
-          if(entity.y+entity.h>p.y+eps) continue;
-          if(
-            entity.x < p.x + p.w &&
-            entity.x + entity.w > p.x &&
-            entity.y + entity.h > p.y &&
-            entity.y + entity.h < p.y + p.h
-          ){
-            entity.y=p.y-entity.h;
-            entity.vy=0;
-            entity.onGround=true;
-          }
+    if(axis==="y"&&ent.vy>=0){
+      for(i=0;i<plats.length;i++){
+        t=plats[i];
+        if(ent.y+ent.h>t.y+4) continue;
+        if(ent.x<t.x+t.w&&ent.x+ent.w>t.x&&ent.y+ent.h>t.y&&ent.y+ent.h<t.y+t.h){
+          ent.y=t.y-ent.h;ent.vy=0;ent.og=true;
         }
       }
     }
+  }
 
-    /** UPDATE PLAYER **/
-    function damage(amount){
-      if(player.inv>0) return;
-      player.health-=amount;
-      player.inv=1;
-      if(player.health<=0){player.health=0;gameOver();}
+  function dmg(n){
+    if(player.inv>0) return;
+    player.hp-=n;player.inv=1;
+    if(player.hp<=0){player.hp=0;doGameOver();}
+  }
+
+  function updatePlayer(dt){
+    ctrl.left=!!(keys["ArrowLeft"]||keys["a"]||keys["A"]);
+    ctrl.right=!!(keys["ArrowRight"]||keys["d"]||keys["D"]);
+    ctrl.jump=!!(keys["ArrowUp"]||keys["w"]||keys["W"]||keys[" "]);
+    var tvx=0;
+    if(ctrl.left) tvx-=player.spd;
+    if(ctrl.right) tvx+=player.spd;
+    player.vx=tvx;
+    if(player.vx!==0) player.face=player.vx>0?1:-1;
+    if(player.buff>0){player.buff-=dt;player.spd=HEROES[player.k].spd*1.3;player.jmp=HEROES[player.k].jmp*1.2;}
+    else{player.spd=HEROES[player.k].spd;player.jmp=HEROES[player.k].jmp;}
+    if(ctrl.jump&&player.og){player.vy=-player.jmp;player.og=false;}
+    player.vy+=GRAV*dt;
+    player.x+=player.vx;
+    resolve(player,world.ground,world.plats,"x");
+    player.y+=player.vy;
+    player.og=false;
+    resolve(player,world.ground,world.plats,"y");
+    var i;
+    for(i=0;i<world.spikes.length;i++) if(hit(player,world.spikes[i])) dmg(1);
+    for(i=0;i<world.snacks.length;i++){
+      var sn=world.snacks[i];
+      if(!sn.got&&hit(player,sn)){sn.got=true;player.score++;snackBank++;}
     }
-
-    function updatePlayer(dt){
-      updateControlsFromKeyboard();
-      let targetVx=0;
-      if(controls.left) targetVx-=player.speed;
-      if(controls.right) targetVx+=player.speed;
-      player.vx=targetVx;
-      if(player.vx!==0) player.facing=player.vx>0?1:-1;
-
-      if(player.buff>0){
-        player.buff-=dt;
-        player.speed=HERO[player.key].speed*1.3;
-        player.jump=HERO[player.key].jump*1.2;
-      }else{
-        player.speed=HERO[player.key].speed;
-        player.jump=HERO[player.key].jump;
-      }
-
-      if(controls.jump && player.onGround){
-        player.vy=-player.jump;
-        player.onGround=false;
-      }
-
-      player.vy+=GRAVITY*dt;
-
-      player.x+=player.vx;
-      resolve(player,world.ground,world.plats,"x");
-
-      player.y+=player.vy;
-      player.onGround=false;
-      resolve(player,world.ground,world.plats,"y");
-
-      for(const s of world.spikes) if(aabb(player,s)) damage(1);
-
-      for(const sn of world.snacks){
-        if(!sn.collected && aabb(player,sn)){
-          sn.collected=true;
-          player.score++;
-          snackBank++;
-        }
-      }
-
-      for(const p of world.powers){
-        if(!p.taken && aabb(player,p)){
-          p.taken=true;
-          if(p.kind==="heart" && player.health<player.maxHealth) player.health++;
-          if(p.kind==="buff") player.buff=6;
-        }
-      }
-
-      for(const e of world.enemies){
-        if(!e.alive) continue;
-        if(aabb(player,e)){
-          if(player.vy>0 && player.y+player.h-10<e.y){
-            e.alive=false;
-            player.vy=-player.jump*0.8;
-          }else{
-            damage(1);
-          }
-        }
-      }
-
-      if(boss && boss.health>0 && aabb(player,boss)){
-        if(player.vy>0 && player.y+player.h-10<boss.y){
-          boss.health--;
-          player.vy=-player.jump*0.9;
-          if(boss.health<=0) winBoss();
-        }else damage(2);
-      }
-
-      if(aabb(player,world.goal)) levelDone();
-
-      if(player.y>world.height+200) damage(player.maxHealth);
-
-      player.anim+=dt;
-      if(player.inv>0) player.inv-=dt;
-
-      if(!player.onGround) player.state="jump";
-      else if(Math.abs(player.vx)>0.1) player.state="run";
-      else player.state="idle";
-
-      const cx=player.x+player.w/2;
-      cameraX=clamp(cx-WIDTH/2,0,Math.max(0,world.width-WIDTH));
-    }
-
-    /** ENEMIES & BOSS UPDATE **/
-    function updateEnemies(dt){
-      for(const e of world.enemies){
-        if(!e.alive) continue;
-        e.anim+=dt;
-        if(e.type==="walker"){
-          e.vy+=GRAVITY*dt;
-          e.x+=e.vx;
-          e.y+=e.vy;
-          e.onGround=false;
-          resolve(e,world.ground,[],"x");
-          resolve(e,world.ground,[],"y");
-          if(Math.abs(e.x-e.baseX)>e.patrol) e.vx*=-1;
-        }else{
-          e.x+=e.vx;
-          e.y=e.baseY+Math.sin(e.anim*3)*18;
-          if(Math.abs(e.x-e.baseX)>2*TILE) e.vx*=-1;
-        }
+    for(i=0;i<world.pows.length;i++){
+      var p=world.pows[i];
+      if(!p.got&&hit(player,p)){
+        p.got=true;
+        if(p.k==="heart"&&player.hp<player.mhp) player.hp++;
+        if(p.k==="buff") player.buff=6;
       }
     }
-
-    function updateBoss(dt){
-      if(!boss || boss.health<=0) return;
-      boss.anim+=dt;
-      boss.vy+=GRAVITY*dt;
-      boss.x+=boss.vx*boss.dir;
-      boss.y+=boss.vy;
-      resolve(boss,world.ground,[],"x");
-      resolve(boss,world.ground,[],"y");
-      if(boss.x<0){boss.x=0;boss.dir=1;}
-      else if(boss.x+boss.w>world.width){boss.x=world.width-boss.w;boss.dir=-1;}
-      const chance=boss.phase===1?0.002:0.004;
-      if(Math.random()<chance && boss.onGround){boss.vy=-22;boss.onGround=false;}
-      if(boss.health<=boss.maxHealth/2 && boss.phase===1){boss.phase=2;boss.vx*=1.3;}
-    }
-
-    /** DRAWING **/
-    function drawBackground(){
-      ctx.fillStyle="#b7e0ff";ctx.fillRect(0,0,WIDTH,HEIGHT);
-      ctx.save();ctx.translate(-cameraX*0.3,0);
-      const bg=IMAGES.bg;
-      if(bg && bg.complete){
-        const w=bg.width;const times=Math.ceil(WIDTH/w)+2;
-        for(let i=-1;i<times;i++) ctx.drawImage(bg,i*w,HEIGHT-bg.height);
-      }else{
-        ctx.fillStyle="#9fd7ff";
-        for(let i=-1;i<10;i++){
-          const hx=i*260, hy=HEIGHT-180;
-          ctx.beginPath();
-          ctx.moveTo(hx,HEIGHT);
-          ctx.quadraticCurveTo(hx+130,hy-80,hx+260,HEIGHT);
-          ctx.closePath();ctx.fill();
-        }
-      }
-      ctx.restore();
-    }
-
-    function drawTiles(){
-      const all=[
-        ...world.ground.map(t=>({...t,type:"ground"})),
-        ...world.plats.map(t=>({...t,type:"plat"})),
-        ...world.spikes.map(t=>({...t,type:"spike"}))
-      ];
-      for(const t of all){
-        const sx=t.x-cameraX, sy=t.y;
-        if(sx+t.w<0||sx>WIDTH) continue;
-        ctx.save();ctx.translate(sx,sy);
-        if(t.type==="ground"){
-          const g=IMAGES.tiles.ground;
-          if(g && g.complete) ctx.drawImage(g,0,0,t.w,t.h);
-          else{ctx.fillStyle="#f9c784";ctx.fillRect(0,0,t.w,t.h);}
-        }else if(t.type==="plat"){
-          const p=IMAGES.tiles.platform;
-          if(p && p.complete) ctx.drawImage(p,0,0,t.w,t.h);
-          else{ctx.fillStyle="#ffe2a9";ctx.fillRect(0,t.h/2,t.w,t.h/2);}
-        }else{
-          const s=IMAGES.tiles.spike;
-          if(s && s.complete) ctx.drawImage(s,0,0,t.w,t.h);
-          else{
-            ctx.fillStyle="#ff4b5c";
-            ctx.beginPath();
-            ctx.moveTo(0,t.h);
-            ctx.lineTo(t.w*0.25,t.h*0.3);
-            ctx.lineTo(t.w*0.5,t.h);
-            ctx.lineTo(t.w*0.75,t.h*0.3);
-            ctx.lineTo(t.w,t.h);
-            ctx.closePath();ctx.fill();
-          }
-        }
-        ctx.restore();
-      }
-
-      const g=world.goal;const gx=g.x-cameraX;
-      if(gx+g.w>=0&&gx<=WIDTH){
-        ctx.save();ctx.translate(gx,g.y-TILE*0.5);
-        const img=IMAGES.tiles.goal;
-        if(img && img.complete) ctx.drawImage(img,0,0,g.w,g.h*1.5);
-        else{
-          ctx.fillStyle="#fff";ctx.fillRect(8,0,g.w-16,g.h);
-          ctx.fillStyle="#ffcc00";ctx.fillText("G",g.w/2-4,g.h/2+4);
-        }
-        ctx.restore();
+    for(i=0;i<world.enemies.length;i++){
+      var e=world.enemies[i];
+      if(!e.alive) continue;
+      if(hit(player,e)){
+        if(player.vy>0&&player.y+player.h-10<e.y){e.alive=false;player.vy=-player.jmp*0.8;}
+        else dmg(1);
       }
     }
+    if(boss&&boss.hp>0&&hit(player,boss)){
+      if(player.vy>0&&player.y+player.h-10<boss.y){boss.hp--;player.vy=-player.jmp*0.9;if(boss.hp<=0) doWin();}
+      else dmg(2);
+    }
+    if(hit(player,world.goal)) doLevelDone();
+    if(player.y>world.h+200) dmg(player.mhp);
+    player.a+=dt;
+    if(player.inv>0) player.inv-=dt;
+    if(!player.og) player.st="jump";
+    else if(Math.abs(player.vx)>0.1) player.st="run";
+    else player.st="idle";
+    var cx=player.x+player.w/2;
+    camX=clamp(cx-W/2,0,Math.max(0,world.w-W));
+  }
 
-    function drawSnacks(){
-      for(const sn of world.snacks){
-        if(sn.collected) continue;
-        const sx=sn.x-cameraX, sy=sn.y;
-        if(sx+sn.w<0||sx>WIDTH) continue;
-        ctx.save();ctx.translate(sx+sn.w/2,sy+sn.h/2);
-        const bob=Math.sin(performance.now()/300+sx*0.02)*4;
-        ctx.translate(0,bob);
-        const img=IMAGES.tiles.snack;
-        if(img && img.complete) ctx.drawImage(img,-sn.w/2,-sn.h/2,sn.w,sn.h);
-        else{
-          ctx.fillStyle="#ffe066";
-          ctx.beginPath();ctx.arc(0,0,sn.w/2,0,Math.PI*2);ctx.fill();
-        }
-        ctx.restore();
+  function updateEnemies(dt){
+    var i,e;
+    for(i=0;i<world.enemies.length;i++){
+      e=world.enemies[i];
+      if(!e.alive) continue;
+      e.a+=dt;
+      if(e.t==="walker"){
+        e.vy+=GRAV*dt;e.x+=e.vx;e.y+=e.vy;e.og=false;
+        resolve(e,world.ground,[],"x");resolve(e,world.ground,[],"y");
+        if(Math.abs(e.x-e.bx)>e.pat) e.vx*=-1;
+      } else {
+        e.x+=e.vx;e.y=e.by+Math.sin(e.a*3)*18;
+        if(Math.abs(e.x-e.bx)>2*TILE) e.vx*=-1;
       }
     }
+  }
 
-    function drawPowers(){
-      for(const p of world.powers){
-        if(p.taken) continue;
-        const sx=p.x-cameraX, sy=p.y;
-        if(sx+p.w<0||sx>WIDTH) continue;
-        ctx.save();ctx.translate(sx+p.w/2,sy+p.h/2);
-        const bob=Math.sin(performance.now()/350+sx*0.015)*4;
-        ctx.translate(0,bob);
-        if(p.kind==="heart"){
-          ctx.fillStyle="#ff4b5c";
-          ctx.beginPath();
-          ctx.moveTo(0,8);
-          ctx.bezierCurveTo(-12,-6,-8,-14,0,-6);
-          ctx.bezierCurveTo(8,-14,12,-6,0,8);
-          ctx.fill();
-        }else{
-          ctx.fillStyle="#ffe066";
-          ctx.beginPath();ctx.arc(0,0,p.w/2.2,0,Math.PI*2);ctx.fill();
-          ctx.fillStyle="#2b2620";ctx.font="bold 14px system-ui";
-          ctx.textAlign="center";ctx.textBaseline="middle";
-          ctx.fillText("P",0,0);
-        }
-        ctx.restore();
-      }
+  function updateBoss(dt){
+    if(!boss||boss.hp<=0) return;
+    boss.a+=dt;boss.vy+=GRAV*dt;
+    boss.x+=boss.vx*boss.dir;boss.y+=boss.vy;
+    resolve(boss,world.ground,[],"x");resolve(boss,world.ground,[],"y");
+    if(boss.x<0){boss.x=0;boss.dir=1;}
+    else if(boss.x+boss.w>world.w){boss.x=world.w-boss.w;boss.dir=-1;}
+    if(Math.random()<(boss.phase===1?0.002:0.004)&&boss.og){boss.vy=-22;boss.og=false;}
+    if(boss.hp<=boss.mhp/2&&boss.phase===1){boss.phase=2;boss.vx*=1.3;}
+  }
+
+  function drawBG(){
+    ctx.fillStyle="#b7e0ff";ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.translate(-camX*0.3,0);
+    if(IMGS.bg&&IMGS.bg.complete&&IMGS.bg.naturalWidth>0){
+      var bw=IMGS.bg.width;var times=Math.ceil(W/bw)+2;
+      for(var i=-1;i<times;i++) ctx.drawImage(IMGS.bg,i*bw,H-IMGS.bg.height);
+    } else {
+      ctx.fillStyle="#9fd7ff";
+      for(var j=-1;j<10;j++){var hx=j*260;ctx.beginPath();ctx.moveTo(hx,H);ctx.quadraticCurveTo(hx+130,H-260,hx+260,H);ctx.closePath();ctx.fill();}
     }
+    ctx.restore();
+  }
 
-    function drawEnemies(){
-      for(const e of world.enemies){
-        if(!e.alive) continue;
-        const sx=e.x-cameraX, sy=e.y;
-        if(sx+e.w<0||sx>WIDTH) continue;
-        ctx.save();ctx.translate(sx,sy);
-        const squish=1+Math.sin(e.anim*6)*0.08;
-        ctx.translate(e.w/2,e.h/2);ctx.scale(1,squish);ctx.translate(-e.w/2,-e.h/2);
-        ctx.fillStyle=e.type==="flyer"?"#8be9fd":"#ff8b94";
-        ctx.beginPath();ctx.roundRect(0,0,e.w,e.h,10);ctx.fill();
-        ctx.restore();
-      }
-    }
-
-    function drawBoss(){
-      if(!boss||boss.health<=0) return;
-      const sx=boss.x-cameraX, sy=boss.y;
-      if(sx+boss.w<0||sx>WIDTH) return;
+  function drawTiles(){
+    var i,t,sx,sy,ti;
+    var all=[];
+    for(i=0;i<world.ground.length;i++) all.push({e:world.ground[i],t:"ground"});
+    for(i=0;i<world.plats.length;i++) all.push({e:world.plats[i],t:"plat"});
+    for(i=0;i<world.spikes.length;i++) all.push({e:world.spikes[i],t:"spike"});
+    for(i=0;i<all.length;i++){
+      t=all[i].e;sx=t.x-camX;sy=t.y;
+      if(sx+t.w<0||sx>W) continue;
       ctx.save();ctx.translate(sx,sy);
-      const bob=Math.sin(boss.anim*2)*4;ctx.translate(0,bob);
-      const img=IMAGES.bosses[boss.id];
-      if(img && img.complete) ctx.drawImage(img,0,0,boss.w,boss.h);
-      else{ctx.fillStyle="#d88cff";ctx.beginPath();ctx.roundRect(0,0,boss.w,boss.h,18);ctx.fill();}
-      const ratio=boss.health/boss.maxHealth;
-      ctx.translate(0,-14);
-      ctx.fillStyle="#fff";ctx.fillRect(0,0,boss.w,8);
-      ctx.fillStyle="#ff4b5c";ctx.fillRect(0,0,boss.w*ratio,8);
-      ctx.restore();
-    }
-
-    function drawPlayer(){
-      if(!player) return;
-      const sx=player.x-cameraX, sy=player.y;
-      if(sx+player.w<0||sx>WIDTH) return;
-      ctx.save();ctx.translate(sx+player.w/2,sy+player.h/2);
-      const bob=player.state==="idle"?Math.sin(player.anim*4)*2:
-                 player.state==="run"?Math.sin(player.anim*20)*2:0;
-      ctx.translate(0,bob);
-      let scaleY=1;
-      if(player.state==="run") scaleY=1+Math.sin(player.anim*20)*0.05;
-      ctx.scale(player.facing,scaleY);
-
-      const sprites=IMAGES.heroes[player.key];
-      let img=null;
-      if(sprites){
-        if(player.state==="jump") img=sprites.jump;
-        else if(player.state==="run"){
-          const ph=Math.floor(player.anim*12)%2;
-          img=ph===0?sprites.run1:sprites.run2;
-        }else img=sprites.idle;
-      }
-
-      const flicker=player.inv>0 && (Math.floor(player.inv*10)%2===0);
-      if(!flicker){
-        if(img && img.complete) ctx.drawImage(img,-player.w/2,-player.h/2,player.w,player.h);
-        else{
-          ctx.fillStyle=player.color;
-          ctx.beginPath();ctx.roundRect(-player.w/2,-player.h/2,player.w,player.h,10);ctx.fill();
-        }
+      if(all[i].t==="ground"){
+        ti=IMGS.tiles.ground;
+        if(ti&&ti.complete&&ti.naturalWidth>0) ctx.drawImage(ti,0,0,t.w,t.h);
+        else{ctx.fillStyle="#f9c784";ctx.fillRect(0,0,t.w,t.h);ctx.strokeStyle="#543b2f";ctx.lineWidth=3;ctx.strokeRect(2,2,t.w-4,t.h-4);}
+      } else if(all[i].t==="plat"){
+        ti=IMGS.tiles.plat;
+        if(ti&&ti.complete&&ti.naturalWidth>0) ctx.drawImage(ti,0,0,t.w,t.h);
+        else{ctx.fillStyle="#ffe2a9";ctx.fillRect(0,t.h/2,t.w,t.h/2);ctx.strokeStyle="#543b2f";ctx.lineWidth=2;ctx.strokeRect(2,t.h/2,t.w-4,t.h/2-2);}
+      } else {
+        ti=IMGS.tiles.spike;
+        if(ti&&ti.complete&&ti.naturalWidth>0) ctx.drawImage(ti,0,0,t.w,t.h);
+        else{ctx.fillStyle="#ff4b5c";ctx.beginPath();ctx.moveTo(0,t.h);ctx.lineTo(t.w*0.25,t.h*0.3);ctx.lineTo(t.w*0.5,t.h);ctx.lineTo(t.w*0.75,t.h*0.3);ctx.lineTo(t.w,t.h);ctx.closePath();ctx.fill();}
       }
       ctx.restore();
     }
-
-    function drawWorld(){
-      drawBackground();
-      drawTiles();
-      drawSnacks();
-      drawPowers();
-      drawEnemies();
-      drawBoss();
-      drawPlayer();
+    var g=world.goal;var gx=g.x-camX;
+    if(gx+g.w>=0&&gx<=W){
+      ctx.save();ctx.translate(gx,g.y-TILE*0.5);
+      ti=IMGS.tiles.goal;
+      if(ti&&ti.complete&&ti.naturalWidth>0) ctx.drawImage(ti,0,0,g.w,g.h*1.5);
+      else{ctx.fillStyle="#fff";ctx.fillRect(8,0,g.w-16,g.h);ctx.fillStyle="#ffcc00";ctx.font="bold 16px system-ui";ctx.fillText("G",g.w/2-5,g.h/2+6);}
+      ctx.restore();
     }
+  }
 
-    /** HUD & STATES **/
-    function updateHUD(){
-      if(!player||!world) return;
-      hudHero.textContent = HERO[player.key].name;
-      hudVillain.textContent = selectedVillain ? selectedVillain.name : "–";
-      hudLevel.textContent = world.name;
-      hudRunSnacks.textContent = player.score;
-      hudBank.textContent = snackBank;
+  function drawSnacks(){
+    var i,sn,sx,bob;
+    for(i=0;i<world.snacks.length;i++){
+      sn=world.snacks[i];if(sn.got) continue;
+      sx=sn.x-camX;if(sx+sn.w<0||sx>W) continue;
+      ctx.save();ctx.translate(sx+sn.w/2,sn.y+sn.h/2);
+      bob=Math.sin(performance.now()/300+sx*0.02)*4;ctx.translate(0,bob);
+      var ti=IMGS.tiles.snack;
+      if(ti&&ti.complete&&ti.naturalWidth>0) ctx.drawImage(ti,-sn.w/2,-sn.h/2,sn.w,sn.h);
+      else{ctx.fillStyle="#ffe066";ctx.beginPath();ctx.arc(0,0,sn.w/2,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    }
+  }
 
-      hudHearts.innerHTML="";
-      for(let i=0;i<player.maxHealth;i++){
-        const span=document.createElement("span");
-        span.className="health-heart";
-        if(i>=player.health){span.style.filter="grayscale(0.7)";span.style.opacity="0.5";}
-        hudHearts.appendChild(span);
+  function drawPows(){
+    var i,p,sx,bob;
+    for(i=0;i<world.pows.length;i++){
+      p=world.pows[i];if(p.got) continue;
+      sx=p.x-camX;if(sx+p.w<0||sx>W) continue;
+      ctx.save();ctx.translate(sx+p.w/2,p.y+p.h/2);
+      bob=Math.sin(performance.now()/350+sx*0.015)*4;ctx.translate(0,bob);
+      if(p.k==="heart"){
+        ctx.fillStyle="#ff4b5c";ctx.beginPath();ctx.moveTo(0,8);ctx.bezierCurveTo(-12,-6,-8,-14,0,-6);ctx.bezierCurveTo(8,-14,12,-6,0,8);ctx.fill();
+      } else {
+        ctx.fillStyle="#ffe066";ctx.beginPath();ctx.arc(0,0,p.w/2.2,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="#2b2620";ctx.font="bold 14px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("P",0,1);
       }
+      ctx.restore();
     }
+  }
 
-    function setPause(p){
-      if(p){
-        if(gameState!=="playing") return;
-        gameState="paused";
-        overlayScreen.classList.remove("hidden");
-        document.getElementById("overlay-title").textContent="Paused";
-        document.getElementById("overlay-text").textContent="Stretch your fingers, snack hero.";
-        bgMusic.pause();
-      }else{
-        if(gameState!=="paused") return;
-        gameState="playing";
-        overlayScreen.classList.add("hidden");
-        bgMusic.play().catch(()=>{});
-      }
+  function drawEnemies(){
+    var i,e,sx,sq;
+    for(i=0;i<world.enemies.length;i++){
+      e=world.enemies[i];if(!e.alive) continue;
+      sx=e.x-camX;if(sx+e.w<0||sx>W) continue;
+      ctx.save();ctx.translate(sx,e.y);
+      sq=1+Math.sin(e.a*6)*0.08;
+      ctx.translate(e.w/2,e.h/2);ctx.scale(1,sq);ctx.translate(-e.w/2,-e.h/2);
+      ctx.fillStyle=e.t==="flyer"?"#8be9fd":"#ff8b94";
+      ctx.beginPath();if(ctx.roundRect) ctx.roundRect(0,0,e.w,e.h,10); else ctx.rect(0,0,e.w,e.h);
+      ctx.fill();ctx.strokeStyle="#2b2620";ctx.lineWidth=2;ctx.stroke();
+      ctx.restore();
     }
+  }
 
-    function gameOver(){
-      gameState="game-over";
-      overlayScreen.classList.remove("hidden");
-      document.getElementById("overlay-title").textContent="Game Over";
-      document.getElementById("overlay-text").textContent="Your snack hero got crunched!";
-      bgMusic.pause();
+  function drawBoss(){
+    if(!boss||boss.hp<=0) return;
+    var sx=boss.x-camX;if(sx+boss.w<0||sx>W) return;
+    ctx.save();ctx.translate(sx,boss.y);
+    var bob=Math.sin(boss.a*2)*4;ctx.translate(0,bob);
+    var bi=IMGS.bosses[boss.id];
+    if(bi&&bi.complete&&bi.naturalWidth>0) ctx.drawImage(bi,0,0,boss.w,boss.h);
+    else{ctx.fillStyle="#d88cff";ctx.beginPath();if(ctx.roundRect) ctx.roundRect(0,0,boss.w,boss.h,18); else ctx.rect(0,0,boss.w,boss.h);ctx.fill();ctx.strokeStyle="#2b2620";ctx.lineWidth=3;ctx.stroke();}
+    var ratio=boss.hp/boss.mhp;
+    ctx.translate(0,-14);
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,boss.w,8);
+    ctx.fillStyle="#ff4b5c";ctx.fillRect(0,0,boss.w*ratio,8);
+    ctx.strokeStyle="#2b2620";ctx.lineWidth=2;ctx.strokeRect(0,0,boss.w,8);
+    ctx.restore();
+  }
+
+  function drawPlayer(){
+    if(!player) return;
+    var sx=player.x-camX;
+    if(sx+player.w<0||sx>W) return;
+    ctx.save();ctx.translate(sx+player.w/2,player.y+player.h/2);
+    var bob=player.st==="idle"?Math.sin(player.a*4)*2:player.st==="run"?Math.sin(player.a*20)*2:0;
+    ctx.translate(0,bob);
+    var sy2=1;if(player.st==="run") sy2=1+Math.sin(player.a*20)*0.05;
+    ctx.scale(player.face,sy2);
+    var sp=IMGS.heroes[player.k];var im=null;
+    if(sp){
+      if(player.st==="jump") im=sp.jump;
+      else if(player.st==="run") im=(Math.floor(player.a*12)%2===0)?sp.run1:sp.run2;
+      else im=sp.idle;
     }
-
-    function levelDone(){
-      if(boss && boss.health>0) return;
-      if(currentLevel<LEVELS.length-1){
-        gameState="level-complete";
-        overlayScreen.classList.remove("hidden");
-        document.getElementById("overlay-title").textContent="Level Complete!";
-        document.getElementById("overlay-text").textContent="Nice! Ready for the next level?";
-      }else winBoss();
+    var flicker=player.inv>0&&(Math.floor(player.inv*10)%2===0);
+    if(!flicker){
+      if(im&&im.complete&&im.naturalWidth>0) ctx.drawImage(im,-player.w/2,-player.h/2,player.w,player.h);
+      else{ctx.fillStyle=player.col;ctx.beginPath();if(ctx.roundRect) ctx.roundRect(-player.w/2,-player.h/2,player.w,player.h,10); else ctx.rect(-player.w/2,-player.h/2,player.w,player.h);ctx.fill();ctx.strokeStyle="#2b2620";ctx.lineWidth=3;ctx.stroke();}
     }
+    ctx.restore();
+  }
 
-    function winBoss(){
-      gameState="boss-defeated";
-      overlayScreen.classList.remove("hidden");
-      document.getElementById("overlay-title").textContent="Snack World Saved!";
-      document.getElementById("overlay-text").textContent="You beat "+(selectedVillain?selectedVillain.name:"the boss")+"!";
-      bgMusic.pause();
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    if(world){drawBG();drawTiles();drawSnacks();drawPows();drawEnemies();drawBoss();drawPlayer();}
+  }
+
+  function updateHUD(){
+    if(!player||!world) return;
+    document.getElementById("hud-hero").textContent=HEROES[player.k].name;
+    document.getElementById("hud-villain").textContent=selVillain?selVillain.name:"-";
+    document.getElementById("hud-level").textContent=world.name;
+    document.getElementById("hud-score").textContent=player.score;
+    document.getElementById("hud-bank").textContent=snackBank;
+    var hh=document.getElementById("hud-hearts");hh.innerHTML="";
+    for(var i=0;i<player.mhp;i++){
+      var sp=document.createElement("span");sp.className="heart";
+      if(i>=player.hp){sp.style.filter="grayscale(.7)";sp.style.opacity="0.5";}
+      hh.appendChild(sp);
     }
+  }
 
-    function restartLevel(){
-      if(!selectedHero) return;
-      player=new Player(0,0,selectedHero);
-      buildLevel(currentLevel);
-      gameState="playing";
-      overlayScreen.classList.add("hidden");
-      bgMusic.play().catch(()=>{});
-    }
+  function showOverlay(title,text){
+    document.getElementById("ov-title").textContent=title;
+    document.getElementById("ov-text").textContent=text;
+    document.getElementById("overlay").classList.remove("hidden");
+  }
 
-    function nextLevel(){
-      currentLevel++;
-      if(currentLevel>=LEVELS.length) currentLevel=LEVELS.length-1;
-      restartLevel();
-    }
+  function setPause(p){
+    if(p&&state==="playing"){state="paused";showOverlay("Paused","Take a break, snack hero.");bgm.pause();}
+    else if(!p&&state==="paused"){state="playing";document.getElementById("overlay").classList.add("hidden");bgm.play().catch(function(){});}
+  }
 
-    function backToMenu(){
-      gameState="menu";
-      menuScreen.classList.remove("hidden");
-      overlayScreen.classList.add("hidden");
-      bgMusic.pause();bgMusic.currentTime=0;
-      updateWallet();
-      refreshShop();
-    }
+  function doGameOver(){state="game-over";showOverlay("Game Over","Your snack hero got crunched!");bgm.pause();}
 
-    /** WALLET / SHOP **/
-    function updateWallet(){
-      walletAmount.textContent=snackBank;
-      shopSnacks.textContent=snackBank;
-      hudBank.textContent=snackBank;
-    }
+  function doLevelDone(){
+    if(boss&&boss.hp>0) return;
+    if(curLevel<LEVELS.length-1){state="level-complete";showOverlay("Level Complete!","Nice! Ready for the next level?");}
+    else doWin();
+  }
 
-    function refreshShop(){
-      if(unlocked.popcorn){
-        buyPopcorn.disabled=true;buyPopcorn.textContent="Unlocked";
-        charCards.find(c=>c.dataset.char==="popcorn").classList.remove("locked");
-        const lock=charCards.find(c=>c.dataset.char==="popcorn").querySelector(".char-lock");
-        if(lock) lock.remove();
-      }else buyPopcorn.disabled=snackBank<60;
+  function doWin(){state="boss-defeated";showOverlay("Snack World Saved!","You beat "+(selVillain?selVillain.name:"the boss")+"!");bgm.pause();}
 
-      if(unlocked.cheeto){
-        buyCheeto.disabled=true;buyCheeto.textContent="Unlocked";
-        charCards.find(c=>c.dataset.char==="cheeto").classList.remove("locked");
-        const lock=charCards.find(c=>c.dataset.char==="cheeto").querySelector(".char-lock");
-        if(lock) lock.remove();
-      }else buyCheeto.disabled=snackBank<80;
+  function restartLevel(){
+    if(!selHero) return;
+    player=new Player(0,0,selHero);
+    buildLevel(curLevel);
+    state="playing";
+    document.getElementById("overlay").classList.add("hidden");
+    bgm.play().catch(function(){});
+  }
 
-      if(extraHeart){buyHeart.disabled=true;buyHeart.textContent="Bought";}
-      else buyHeart.disabled=snackBank<40;
+  function nextLevel(){
+    curLevel++;if(curLevel>=LEVELS.length) curLevel=LEVELS.length-1;
+    restartLevel();
+  }
 
-      if(buffBooster){buyBuff.disabled=true;buyBuff.textContent="Bought";}
-      else buyBuff.disabled=snackBank<50;
-    }
+  function goMenu(){
+    state="menu";
+    document.getElementById("menu").classList.remove("hidden");
+    document.getElementById("overlay").classList.add("hidden");
+    bgm.pause();bgm.currentTime=0;
+    refreshWallet();refreshShop();
+  }
 
-    /** MENU / SHOP / INTRO **/
-    introTap.addEventListener("pointerdown",()=>{
-      introScreen.classList.add("hidden");
-      menuScreen.classList.remove("hidden");
-      gameState="menu";
-      updateWallet();
-      refreshShop();
-    });
+  function refreshWallet(){
+    document.getElementById("wallet").textContent=snackBank;
+    document.getElementById("shop-coins").textContent=snackBank;
+    document.getElementById("hud-bank").textContent=snackBank;
+  }
 
-    charCards.forEach(card=>{
-      card.addEventListener("click",()=>{
-        const key=card.dataset.char;
-        if(!unlocked[key]){
-          alert("Locked hero. Unlock in the shop using snacks!");
-          return;
-        }
-        charCards.forEach(c=>c.classList.remove("selected"));
-        card.classList.add("selected");
-        selectedHero=key;
-        selectedVillain=VILLAIN[key];
-        startButton.disabled=false;
-      });
-    });
+  function refreshShop(){
+    var bp=document.getElementById("buy-popcorn");
+    var bc=document.getElementById("buy-cheeto");
+    var bh=document.getElementById("buy-heart");
+    var bb=document.getElementById("buy-buff");
+    if(unlocked.popcorn){bp.disabled=true;bp.textContent="Owned";document.querySelector(".card[data-char=popcorn]").classList.remove("locked");var lk=document.querySelector(".card[data-char=popcorn] .lock-tag");if(lk)lk.remove();}
+    else bp.disabled=snackBank<60;
+    if(unlocked.cheeto){bc.disabled=true;bc.textContent="Owned";document.querySelector(".card[data-char=cheeto]").classList.remove("locked");var lk2=document.querySelector(".card[data-char=cheeto] .lock-tag");if(lk2)lk2.remove();}
+    else bc.disabled=snackBank<80;
+    if(extraHeart){bh.disabled=true;bh.textContent="Bought";}else bh.disabled=snackBank<40;
+    if(buffBooster){bb.disabled=true;bb.textContent="Bought";}else bb.disabled=snackBank<50;
+  }
 
-    shopButton.addEventListener("click",()=>{
-      menuScreen.classList.add("hidden");
-      shopScreen.classList.remove("hidden");
-      updateWallet();refreshShop();
-    });
-
-    shopBack.addEventListener("click",()=>{
-      shopScreen.classList.add("hidden");
-      menuScreen.classList.remove("hidden");
-      updateWallet();refreshShop();
-    });
-
-    buyPopcorn.addEventListener("click",()=>{
-      if(snackBank>=60 && !unlocked.popcorn){
-        snackBank-=60;unlocked.popcorn=true;updateWallet();refreshShop();
-      }
-    });
-
-    buyCheeto.addEventListener("click",()=>{
-      if(snackBank>=80 && !unlocked.cheeto){
-        snackBank-=80;unlocked.cheeto=true;updateWallet();refreshShop();
-      }
-    });
-
-    buyHeart.addEventListener("click",()=>{
-      if(snackBank>=40 && !extraHeart){
-        snackBank-=40;extraHeart=true;updateWallet();refreshShop();
-      }
-    });
-
-    buyBuff.addEventListener("click",()=>{
-      if(snackBank>=50 && !buffBooster){
-        snackBank-=50;buffBooster=true;updateWallet();refreshShop();
-      }
-    });
-
-    startButton.addEventListener("click",()=>{
-      if(!selectedHero) return;
-      menuScreen.classList.add("hidden");
-      player=new Player(0,0,selectedHero);
-      currentLevel=0;
-      buildLevel(currentLevel);
-      gameState="playing";
-      bgMusic.volume=0.6;
-      bgMusic.play().catch(()=>{});
-    });
-
-    btnResume.addEventListener("click",()=>{
-      if(gameState==="paused") setPause(false);
-      else if(gameState==="level-complete"){overlayScreen.classList.add("hidden");nextLevel();}
-      else if(gameState==="game-over"){overlayScreen.classList.add("hidden");restartLevel();}
-      else if(gameState==="boss-defeated") backToMenu();
-    });
-
-    btnRestart.addEventListener("click",()=>{restartLevel();});
-    btnBackMenu.addEventListener("click",()=>{backToMenu();});
-
-    /** MAIN LOOP **/
-    function update(dt){
-      if(gameState!=="playing") return;
-      updatePlayer(dt);
-      updateEnemies(dt);
-      updateBoss(dt);
-      updateHUD();
-    }
-
-    function render(){
-      ctx.clearRect(0,0,WIDTH,HEIGHT);
-      if(world) drawWorld();
-    }
-
-    function loop(ts){
-      const dt=(ts-lastTime)/1000;lastTime=ts;
-      update(dt);render();
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+  document.getElementById("intro-btn").addEventListener("click",function(){
+    document.getElementById("intro").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+    state="menu";refreshWallet();refreshShop();
   });
-  </script>
+
+  document.querySelectorAll(".card").forEach(function(card){
+    card.addEventListener("click",function(){
+      var k=card.getAttribute("data-char");
+      if(!unlocked[k]){alert("Locked! Unlock in the Shop.");return;}
+      document.querySelectorAll(".card").forEach(function(c){c.classList.remove("selected");});
+      card.classList.add("selected");
+      selHero=k;selVillain=VILLAINS[k];
+      document.getElementById("start-btn").disabled=false;
+    });
+  });
+
+  document.getElementById("shop-btn").addEventListener("click",function(){
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("shop").classList.remove("hidden");
+    refreshWallet();refreshShop();
+  });
+
+  document.getElementById("shop-back").addEventListener("click",function(){
+    document.getElementById("shop").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+    refreshWallet();refreshShop();
+  });
+
+  document.getElementById("buy-popcorn").addEventListener("click",function(){if(snackBank>=60&&!unlocked.popcorn){snackBank-=60;unlocked.popcorn=true;refreshWallet();refreshShop();}});
+  document.getElementById("buy-cheeto").addEventListener("click",function(){if(snackBank>=80&&!unlocked.cheeto){snackBank-=80;unlocked.cheeto=true;refreshWallet();refreshShop();}});
+  document.getElementById("buy-heart").addEventListener("click",function(){if(snackBank>=40&&!extraHeart){snackBank-=40;extraHeart=true;refreshWallet();refreshShop();}});
+  document.getElementById("buy-buff").addEventListener("click",function(){if(snackBank>=50&&!buffBooster){snackBank-=50;buffBooster=true;refreshWallet();refreshShop();}});
+
+  document.getElementById("start-btn").addEventListener("click",function(){
+    if(!selHero) return;
+    document.getElementById("menu").classList.add("hidden");
+    player=new Player(0,0,selHero);
+    curLevel=0;buildLevel(0);
+    state="playing";
+    bgm.volume=0.6;bgm.play().catch(function(){});
+  });
+
+  document.getElementById("btn-resume").addEventListener("click",function(){
+    if(state==="paused") setPause(false);
+    else if(state==="level-complete"){document.getElementById("overlay").classList.add("hidden");nextLevel();}
+    else if(state==="game-over"){document.getElementById("overlay").classList.add("hidden");restartLevel();}
+    else if(state==="boss-defeated") goMenu();
+  });
+  document.getElementById("btn-restart").addEventListener("click",function(){restartLevel();});
+  document.getElementById("btn-menu").addEventListener("click",function(){goMenu();});
+
+  window.addEventListener("keydown",function(e){
+    keys[e.key]=true;
+    if(e.key==="Escape"){if(state==="playing") setPause(true);else if(state==="paused") setPause(false);}
+    if((e.key==="r"||e.key==="R")&&state==="playing") restartLevel();
+  });
+  window.addEventListener("keyup",function(e){keys[e.key]=false;});
+
+  document.querySelectorAll(".tbtn").forEach(function(btn){
+    var act=btn.getAttribute("data-action");
+    btn.addEventListener("pointerdown",function(e){e.preventDefault();ctrl[act]=true;});
+    btn.addEventListener("pointerup",function(e){e.preventDefault();ctrl[act]=false;});
+    btn.addEventListener("pointerleave",function(e){e.preventDefault();ctrl[act]=false;});
+    btn.addEventListener("pointercancel",function(e){e.preventDefault();ctrl[act]=false;});
+    btn.addEventListener("touchstart",function(e){e.preventDefault();ctrl[act]=true;},{passive:false});
+    btn.addEventListener("touchend",function(e){e.preventDefault();ctrl[act]=false;},{passive:false});
+  });
+
+  function loop(ts){
+    var dt=(ts-lastT)/1000;lastT=ts;
+    if(state==="playing"&&world&&player){
+      updatePlayer(dt);updateEnemies(dt);updateBoss(dt);updateHUD();
+    }
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
 </body>
 </html>
