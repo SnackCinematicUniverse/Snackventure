@@ -2113,7 +2113,10 @@ function startIntro() {
       lastTime = timestamp;
       update(dt);
       render();
-      requestAnimationFrame(loop);
+window.addEventListener("load", () => {
+  requestAnimationFrame(loop);
+});
+
     }
 
     requestAnimationFrame(loop);
